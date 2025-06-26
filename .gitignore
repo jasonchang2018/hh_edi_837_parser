@@ -1,0 +1,7 @@
+*.csv
+*.xlsx
+*.twbr
+*.ipynb_checkpoints
+*/notation.txt
+doc/*
+*.ini
