@@ -115,8 +115,17 @@ with filtered_clm as
         where       regexp_like(qualified.line_element_837, '^DTP.*')                               --1 Filter
     )
     select      *,
-                to_date(left(date_range_claim,  8), 'YYYYMMDD') as start_date_claim,
-                to_date(right(date_range_claim, 8), 'YYYYMMDD') as end_date_claim
+                case    when    date_format_claim = 'RD8'
+                        and     regexp_like(date_range_claim, '^\\d{8}\\-\\d{8}$')
+                        then    to_date(left(date_range_claim,  8), 'YYYYMMDD')
+                        else    NULL
+                        end     as start_date_claim,
+
+                case    when    date_format_claim = 'RD8'
+                        and     regexp_like(date_range_claim, '^\\d{8}\\-\\d{8}$')
+                        then    to_date(right(date_range_claim, 8), 'YYYYMMDD')
+                        else    NULL
+                        end     as end_date_claim
     from        long
                 pivot(
                     max(value_format) for value_header in (
@@ -775,5 +784,5 @@ from        header_clm      as header
                 and header.nth_transaction_set  = hi.nth_transaction_set
                 and header.claim_index          = hi.claim_index
 
-order by    1,2,3,
+order by    1,2,3
 ;
