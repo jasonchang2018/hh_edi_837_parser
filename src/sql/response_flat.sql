@@ -4,10 +4,9 @@ as
 with flattened as
 (
     select      response_id,
-                index,
-                trim(regexp_replace(value, '\\s+', ' ')) as line_element_837
-    from        edwprodhh.edi_837_parser.response as response,
-                lateral split_to_table(response.response_body, '~') as flattened
+                line_number as index,
+                trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', '')) as line_element_837
+    from        edwprodhh.edi_837_parser.response
 )
 , add_transaction_set_index as
 (  
