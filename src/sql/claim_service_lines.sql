@@ -154,6 +154,7 @@ with filtered_lx as
                             end     as value_header,
 
                     case    when    value_header = 'DATE_LX'
+                            and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
                             end     as value_format
