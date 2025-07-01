@@ -78,25 +78,18 @@ with filtered_clm as
                     RELEASE_OF_INFO_CODE
                 )
 )
-, claim_dtp as
+, claim_dtp_434 as
 (
-    with qualified as
+    with long as
     (
-        select      *,
-                    lag(line_element_837, 1) over (partition by response_id, nth_transaction_set, claim_index order by index asc) as previous_line_element
-        from        filtered_clm
-        qualify     left(previous_line_element, 3) = 'CLM'
-    )
-    , long as
-    (
-        select      qualified.response_id,
-                    qualified.nth_transaction_set,
-                    qualified.index,
-                    qualified.hl_index_current,
-                    qualified.hl_index_billing_20,
-                    qualified.hl_index_subscriber_22,
-                    qualified.hl_index_patient_23,
-                    qualified.claim_index,
+        select      filtered_clm.response_id,
+                    filtered_clm.nth_transaction_set,
+                    filtered_clm.index,
+                    filtered_clm.hl_index_current,
+                    filtered_clm.hl_index_billing_20,
+                    filtered_clm.hl_index_subscriber_22,
+                    filtered_clm.hl_index_patient_23,
+                    filtered_clm.claim_index,
 
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -109,10 +102,10 @@ with filtered_clm as
 
                     nullif(trim(flattened.value), '') as value_format
 
-        from        qualified,
-                    lateral split_to_table(qualified.line_element_837, '*') as flattened            --2 Flatten
+        from        filtered_clm,
+                    lateral split_to_table(filtered_clm.line_element_837, '*') as flattened            --2 Flatten
 
-        where       regexp_like(qualified.line_element_837, '^DTP.*')                               --1 Filter
+        where       regexp_like(filtered_clm.line_element_837, '^DTP\\*434.*')                          --1 Filter
     )
     select      *,
                 case    when    date_format_claim = 'RD8'
@@ -147,6 +140,123 @@ with filtered_clm as
                     DATE_QUALIFIER_CLAIM,
                     DATE_FORMAT_CLAIM,
                     DATE_RANGE_CLAIM
+                )
+)
+, claim_dtp_435 as
+(
+    with long as
+    (
+        select      filtered_clm.response_id,
+                    filtered_clm.nth_transaction_set,
+                    filtered_clm.index,
+                    filtered_clm.hl_index_current,
+                    filtered_clm.hl_index_billing_20,
+                    filtered_clm.hl_index_subscriber_22,
+                    filtered_clm.hl_index_patient_23,
+                    filtered_clm.claim_index,
+
+                    -- flattened.index,
+                    -- nullif(trim(flattened.value), '') as value_raw,
+
+                    case    when    flattened.index = 1   then      'DTP_PREFIX_CLAIM_ADMIT'
+                            when    flattened.index = 2   then      'DATE_QUALIFIER_CLAIM_ADMIT'
+                            when    flattened.index = 3   then      'DATE_FORMAT_CLAIM_ADMIT'
+                            when    flattened.index = 4   then      'DATETIME_CLAIM_ADMIT'
+                            end     as value_header,
+
+                    nullif(trim(flattened.value), '') as value_format
+
+        from        filtered_clm,
+                    lateral split_to_table(filtered_clm.line_element_837, '*') as flattened            --2 Flatten
+
+        where       regexp_like(filtered_clm.line_element_837, '^DTP\\*435.*')                          --1 Filter
+    )
+    select      *,
+                case    when    date_format_claim_admit = 'DT'
+                        and     regexp_like(datetime_claim_admit, '^\\d{12}$')
+                        then    to_date(left(datetime_claim_admit,  8), 'YYYYMMDD')
+                        else    NULL
+                        end     as admit_date_claim,
+
+                case    when    date_format_claim_admit = 'DT'
+                        and     regexp_like(datetime_claim_admit, '^\\d{12}$')
+                        then    left(right(datetime_claim_admit, 4), 2)
+                        else    NULL
+                        end     as admit_hour_claim
+    from        long
+                pivot(
+                    max(value_format) for value_header in (
+                        'DTP_PREFIX_CLAIM_ADMIT',
+                        'DATE_QUALIFIER_CLAIM_ADMIT',
+                        'DATE_FORMAT_CLAIM_ADMIT',
+                        'DATETIME_CLAIM_ADMIT'
+                    )
+                )   as pvt (
+                    RESPONSE_ID,
+                    NTH_TRANSACTION_SET,
+                    INDEX,
+                    HL_INDEX_CURRENT,
+                    HL_INDEX_BILLING_20,
+                    HL_INDEX_SUBSCRIBER_22,
+                    HL_INDEX_PATIENT_23,
+                    CLAIM_INDEX,
+                    DTP_PREFIX_CLAIM_ADMIT,
+                    DATE_QUALIFIER_CLAIM_ADMIT,
+                    DATE_FORMAT_CLAIM_ADMIT,
+                    DATETIME_CLAIM_ADMIT
+                )
+)
+, claim_dtp_096 as
+(
+    with long as
+    (
+        select      filtered_clm.response_id,
+                    filtered_clm.nth_transaction_set,
+                    filtered_clm.index,
+                    filtered_clm.hl_index_current,
+                    filtered_clm.hl_index_billing_20,
+                    filtered_clm.hl_index_subscriber_22,
+                    filtered_clm.hl_index_patient_23,
+                    filtered_clm.claim_index,
+
+                    -- flattened.index,
+                    -- nullif(trim(flattened.value), '') as value_raw,
+
+                    case    when    flattened.index = 1   then      'DTP_PREFIX_CLAIM_TIME'
+                            when    flattened.index = 2   then      'DATE_QUALIFIER_CLAIM_TIME'
+                            when    flattened.index = 3   then      'DATE_FORMAT_CLAIM_TIME'
+                            when    flattened.index = 4   then      'TIME_CLAIM_TIME'
+                            end     as value_header,
+
+                    nullif(trim(flattened.value), '') as value_format
+
+        from        filtered_clm,
+                    lateral split_to_table(filtered_clm.line_element_837, '*') as flattened            --2 Flatten
+
+        where       regexp_like(filtered_clm.line_element_837, '^DTP\\*096.*')                          --1 Filter
+    )
+    select      *
+    from        long
+                pivot(
+                    max(value_format) for value_header in (
+                        'DTP_PREFIX_CLAIM_TIME',
+                        'DATE_QUALIFIER_CLAIM_TIME',
+                        'DATE_FORMAT_CLAIM_TIME',
+                        'TIME_CLAIM_TIME'
+                    )
+                )   as pvt (
+                    RESPONSE_ID,
+                    NTH_TRANSACTION_SET,
+                    INDEX,
+                    HL_INDEX_CURRENT,
+                    HL_INDEX_BILLING_20,
+                    HL_INDEX_SUBSCRIBER_22,
+                    HL_INDEX_PATIENT_23,
+                    CLAIM_INDEX,
+                    DTP_PREFIX_CLAIM_TIME,
+                    DATE_QUALIFIER_CLAIM_TIME,
+                    DATE_FORMAT_CLAIM_TIME,
+                    TIME_CLAIM_TIME
                 )
 )
 , claim_cl1 as
@@ -681,6 +791,38 @@ with filtered_clm as
                     PROVIDER_TAXONOMY_CODE_OPERATING
                 )
 )
+
+, clm_ref_flattened as
+(
+    select      claims.response_id,
+                claims.nth_transaction_set,
+                claims.claim_index,
+                flattened.value['claim_ref_code']           ::varchar as claim_ref_code,
+                flattened.value['claim_ref_description']    ::varchar as claim_ref_description,
+                flattened.value['claim_ref_value']          ::varchar as claim_ref_value
+                
+    from        edwprodhh.edi_837_parser.claims,
+                lateral flatten(input => clm_ref_array) as flattened
+)
+, clm_ref_ea as
+(
+    select      *
+    from        clm_ref_flattened
+    where       claim_ref_code = 'EA'
+    --Ensure uniqueness
+    qualify     row_number() over (partition by response_id, nth_transaction_set, claim_index order by claim_ref_value asc) = 1
+)
+, clm_ref_g1 as
+(
+    select      response_id,
+                nth_transaction_set,
+                claim_index,
+                array_agg(claim_ref_value) as claim_ref_value_array
+    from        clm_ref_flattened
+    where       claim_ref_code = 'G1'
+    group by    1,2,3
+)
+
 select      header.response_id,
             header.nth_transaction_set,
             header.index,
@@ -699,12 +841,22 @@ select      header.response_id,
             header.participation_code,
             header.benefits_assignment_indicator,
             header.release_of_info_code,
-            dtp.dtp_prefix_claim,
-            dtp.date_qualifier_claim,
-            dtp.date_format_claim,
-            dtp.date_range_claim,
-            dtp.start_date_claim,
-            dtp.end_date_claim,
+            dtp_434.dtp_prefix_claim,
+            dtp_434.date_qualifier_claim,
+            dtp_434.date_format_claim,
+            dtp_434.date_range_claim,
+            dtp_434.start_date_claim,
+            dtp_434.end_date_claim,
+            dtp_435.dtp_prefix_claim_admit,
+            dtp_435.date_qualifier_claim_admit,
+            dtp_435.date_format_claim_admit,
+            dtp_435.datetime_claim_admit,
+            dtp_435.admit_date_claim,
+            dtp_435.admit_hour_claim,
+            dtp_096.dtp_prefix_claim_time,
+            dtp_096.date_qualifier_claim_time,
+            dtp_096.date_format_claim_time,
+            dtp_096.time_claim_time,
             cl1.cl1_prefix,
             cl1.admission_type_code,
             cl1.admission_source_code,
@@ -739,14 +891,27 @@ select      header.response_id,
             nm72_prv.provider_taxonomy_code_operating,
 
             ref.clm_ref_array,
-            hi.clm_hi_array
+            hi.clm_hi_array,
+
+            clm_ref_ea.claim_ref_value          as clm_ref_medical_record_num,
+            clm_ref_g1.claim_ref_value_array    as clm_ref_treatment_auth_codes_array
 
 from        header_clm      as header
             left join
-                claim_dtp       as dtp
-                on  header.response_id          = dtp.response_id
-                and header.nth_transaction_set  = dtp.nth_transaction_set
-                and header.claim_index          = dtp.claim_index
+                claim_dtp_434   as dtp_434
+                on  header.response_id          = dtp_434.response_id
+                and header.nth_transaction_set  = dtp_434.nth_transaction_set
+                and header.claim_index          = dtp_434.claim_index
+            left join
+                claim_dtp_435   as dtp_435
+                on  header.response_id          = dtp_435.response_id
+                and header.nth_transaction_set  = dtp_435.nth_transaction_set
+                and header.claim_index          = dtp_435.claim_index
+            left join
+                claim_dtp_096   as dtp_096
+                on  header.response_id          = dtp_096.response_id
+                and header.nth_transaction_set  = dtp_096.nth_transaction_set
+                and header.claim_index          = dtp_096.claim_index
             left join
                 claim_cl1       as cl1
                 on  header.response_id          = cl1.response_id
@@ -783,6 +948,17 @@ from        header_clm      as header
                 on  header.response_id          = hi.response_id
                 and header.nth_transaction_set  = hi.nth_transaction_set
                 and header.claim_index          = hi.claim_index
+
+            left join
+                clm_ref_ea
+                on  header.response_id          = clm_ref_ea.response_id
+                and header.nth_transaction_set  = clm_ref_ea.nth_transaction_set
+                and header.claim_index          = clm_ref_ea.claim_index
+            left join
+                clm_ref_g1
+                on  header.response_id          = clm_ref_g1.response_id
+                and header.nth_transaction_set  = clm_ref_g1.nth_transaction_set
+                and header.claim_index          = clm_ref_g1.claim_index                
 
 order by    1,2,3
 ;
