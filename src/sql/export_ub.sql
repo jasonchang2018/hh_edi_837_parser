@@ -1,3 +1,5 @@
+-- Sample UB files: T:\Complex Claims\IU\PATIENT FOLDERS
+
 create or replace view
     edwprodhh.edi_837_parser.export_ub
 as

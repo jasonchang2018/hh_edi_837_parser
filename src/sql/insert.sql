@@ -1,3 +1,11 @@
+-- Raw 837 files:   \\hh-fileserver01\TempUL2\IU_Health_Complex\837_FILES_IN\2025
+-- Sample UB files: T:\Complex Claims\IU\PATIENT FOLDERS
+
+
+-- Add raw 837 files to stage.
+-- snowsql -q "PUT file://\\\\hh-fileserver01\\TempUL2\\IU_Health_Complex\\837_FILES_IN\\2025\\*.837 @edwprodhh.edi_837_parser.stg_response auto_compress=false;"
+-- list @edwprodhh.edi_837_parser.stg_response;
+
 insert into
     edwprodhh.edi_837_parser.response
 select      sha2(METADATA$FILENAME)                                             as response_id,
