@@ -4,6 +4,7 @@ as
 with flattened as
 (
     select      response_id,
+                to_date(regexp_replace(regexp_substr(file_name, '(_\\d{6}_)'), '_', ''), 'yymmdd') as file_date,
                 line_number as index,
                 trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', '')) as line_element_837
     from        edwprodhh.edi_837_parser.response
@@ -42,6 +43,7 @@ with flattened as
     from        add_clm_index
 )
 select      response_id,
+            file_date,
             index,
             line_element_837,
             nth_transaction_set,
@@ -63,6 +65,7 @@ insert into
     edwprodhh.edi_837_parser.response_flat
 (
     RESPONSE_ID,
+    FILE_DATE,
     INDEX,
     LINE_ELEMENT_837,
     NTH_TRANSACTION_SET,
@@ -78,6 +81,7 @@ insert into
 with flattened as
 (
     select      response_id,
+                to_date(regexp_replace(regexp_substr(file_name, '(_\\d{6}_)'), '_', ''), 'yymmdd') as file_date,
                 line_number as index,
                 trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', '')) as line_element_837
     from        edwprodhh.edi_837_parser.response
@@ -117,6 +121,7 @@ with flattened as
     from        add_clm_index
 )
 select      response_id,
+            file_date,
             index,
             line_element_837,
             nth_transaction_set,
