@@ -40,6 +40,7 @@ with last_response as
                 lx.lx_assigned_line_number,
 
 
+                --  PROVIDER INFORMATION
                 hl_providers.last_name_org_provider                                                                             as provider_name_1a,
                 coalesce(hl_providers.address_line_1_provider, '') ||
                     coalesce(hl_providers.address_line_2_provider, '')                                                          as provider_address_1b,
@@ -50,6 +51,8 @@ with last_response as
                 , '\\s*\\,?\\s*$'), '')                                                                                         as provider_address_1c,
                 hl_providers.communication_number_1_provider                                                                    as provider_phone_1d,
 
+
+                --  PAY-TO INFORMATION
                 coalesce(hl_providers.last_name_org_provider_payto, hl_providers.last_name_org_provider, '')                    as payto_name_2a,
                 coalesce(hl_providers.address_line_1_provider_payto, '') ||
                     coalesce(hl_providers.address_line_2_provider_payto, '')                                                    as payto_address_2b,
@@ -58,18 +61,24 @@ with last_response as
                     coalesce(hl_providers.st_provider_payto, '') || ' ' ||
                     coalesce(hl_providers.zip_provider_payto, '')
                 , '\\s*\\,?\\s*$'), '')                                                                                         as payto_address_2c,
-                NULL                                                                                                            as payto_phone_2d,--Not found
-                
+                NULL                                                                                                            as payto_phone_2d,                  --On UB, not in 837.
+
+
+                --  RECORD IDS
                 claims.claim_id                                                                                                 as patient_control_num_3a,
                 claims.clm_ref_medical_record_num                                                                               as medical_record_num_3b,
 
-                NULL                                                                                                            as type_of_bill_4, --***Not found
+
+                --  STATEMENT SUMMARIES
+                NULL                                                                                                            as type_of_bill_4,                  --On UB, not in 837.
 
                 insert(hl_providers.reference_id_provider, 3, 0, '-')                                                           as provider_fed_tax_num_5,
                 to_varchar(claims.start_date_claim::date,   'MMDDYY')                                                           as statement_date_from_6a,
                 to_varchar(claims.end_date_claim::date,     'MMDDYY')                                                           as statement_date_to_6b,
                 NULL                                                                                                            as empty_7,
-                
+
+
+                --  PATIENT INFORMATION
                 nullif(regexp_replace(
                     case    when    hl_patients.response_id is not null
                             then    coalesce(hl_patients.last_name_org_patient, '') || ', ' ||
@@ -121,6 +130,8 @@ with last_response as
                         else    hl_subscribers.gender_code_subscriber
                         end                                                                                                     as patient_sex_11,
 
+
+                --  ADMISSIONS, CONDITIONS, OCCURRENCES
                 to_varchar(claims.admit_date_claim, 'MMDDYY')                                                                   as admission_date_12,
                 claims.admit_hour_claim                                                                                         as admission_hr_13,
                 claims.admission_type_code                                                                                      as admission_type_14,
@@ -164,10 +175,12 @@ with last_response as
                 split(bh[3],        ':')[1]::varchar                                                                            as occurrence_code_34,
                 to_varchar(to_date(split(bh[3],     ':')[3]::varchar, 'YYYYMMDD'), 'MMDDYY')                                    as occurrence_date_34,
                 
-                NULL                                                                                                            as occurrence_span_35,--Not found
-                NULL                                                                                                            as occurrence_span_36,--Not found
-                NULL                                                                                                            as empty_37,--Not found
-                
+                NULL                                                                                                            as occurrence_span_35,              --On neither UB nor 837.
+                NULL                                                                                                            as occurrence_span_36,              --On neither UB nor 837.
+                NULL                                                                                                            as empty_37,                        --On neither UB nor 837.
+
+
+                --  PAYER INFORMATION
                 nullif(regexp_replace(
                     coalesce(hl_subscribers.last_name_org_subscriber_payor, '') || '\n' ||
                     coalesce(hl_subscribers.address_line_1_subscriber_payor, '') ||
@@ -176,8 +189,10 @@ with last_response as
                     coalesce(hl_subscribers.city_subscriber_payor, '') || ', ' ||
                     coalesce(hl_subscribers.st_subscriber_payor, '') || ' ' ||
                     coalesce(hl_subscribers.zip_subscriber_payor, '')
-                , '\\s*\\,?\\s*$'), '')                                                                                         as payor_38a,   --***Address not found on *some*. See this example where address found on different Claim ID. claims.clm_ref_medical_record_num = '59652740'
+                , '\\s*\\,?\\s*$'), '')                                                                                         as payor_38a,                       --Always on UB, sometimes found on some 837s. See this example where address found on different Claim ID. claims.clm_ref_medical_record_num = '59652740'
                 
+
+                --  PAYER ADJUSTMENTS
                 split(be[0],        ':')[1]::varchar                                                                            as value_codes_code_39a,
                 split(be[0],        ':')[4]::varchar                                                                            as value_codes_amount_39a,
                 split(be[1],        ':')[1]::varchar                                                                            as value_codes_code_40a,
@@ -203,13 +218,17 @@ with last_response as
                 split(be[11],       ':')[1]::varchar                                                                            as value_codes_code_41d,
                 split(be[11],       ':')[4]::varchar                                                                            as value_codes_amount_41d,
                 
+                
+                --  PAYER ARRAY
+                --  PAYER A
                 hl_subscribers.last_name_org_subscriber_payor                                                                   as payer_name_50a,
-                NULL                                                                                                            as health_plan_id_51a,--Not found
+                NULL                                                                                                            as health_plan_id_51a,              --On neither UB nor 837.
                 claims.release_of_info_code                                                                                     as release_of_info_52a,
                 claims.benefits_assignment_indicator                                                                            as benefits_assignment_53a,
-                NULL                                                                                                            as prior_payments_54a,--Not found; need to parse CAS
-                NULL                                                                                                            as est_amount_due_55a,--Not found; need to parse CAS
+                NULL                                                                                                            as prior_payments_54a,              --On neither UB nor 837.
+                NULL                                                                                                            as est_amount_due_55a,              --On neither UB nor 837.
 
+                --  PAYER B
                 claim_othersbr_b.last_name_org_otherpyr                                                                         as payer_name_50b,
                 NULL                                                                                                            as health_plan_id_51b,
                 claim_othersbr_b.release_of_info_othersbr                                                                       as release_of_info_52b,
@@ -217,6 +236,7 @@ with last_response as
                 NULL                                                                                                            as prior_payments_54b,
                 NULL                                                                                                            as est_amount_due_55b,
 
+                --  PAYER C
                 claim_othersbr_c.last_name_org_otherpyr                                                                         as payer_name_50c,
                 NULL                                                                                                            as health_plan_id_51c,
                 claim_othersbr_c.release_of_info_othersbr                                                                       as release_of_info_52c,
@@ -226,9 +246,11 @@ with last_response as
 
 
                 hl_providers.id_code_provider                                                                                   as npi_56,
-                NULL                                                                                                            as empty_57,--Not found
-
-
+                NULL                                                                                                            as empty_57,                        --On neither UB nor 837.
+                
+                
+                --  POLICYHOLDER ARRAY
+                --  POLICYHOLDER A
                 nullif(regexp_replace(
                     coalesce(hl_subscribers.last_name_org_subscriber, '') || ', ' ||
                         coalesce(hl_subscribers.first_name_subscriber, '') || ' ' ||
@@ -238,7 +260,8 @@ with last_response as
                 hl_subscribers.id_code_subscriber                                                                               as insured_unique_id_60a,
                 hl_subscribers.group_name_subscriber                                                                            as insured_group_name_61a,
                 hl_subscribers.group_number_subscriber                                                                          as insurance_group_number_62a,
-                
+
+                --  POLICYHOLDER B
                 nullif(regexp_replace(
                     coalesce(claim_othersbr_b.last_name_org_othersbr, '') || ', ' ||
                         coalesce(claim_othersbr_b.first_name_othersbr, '') || ' ' ||
@@ -248,7 +271,8 @@ with last_response as
                 claim_othersbr_b.id_code_othersbr_nmil                                                                          as insured_unique_id_60b,
                 claim_othersbr_b.group_name_othersbr                                                                            as insured_group_name_61b,
                 claim_othersbr_b.group_number_othersbr                                                                          as insurance_group_number_62b,
-                
+
+                --  POLICYHOLDER C
                 nullif(regexp_replace(
                     coalesce(claim_othersbr_c.last_name_org_othersbr, '') || ', ' ||
                         coalesce(claim_othersbr_c.first_name_othersbr, '') || ' ' ||
@@ -258,16 +282,17 @@ with last_response as
                 claim_othersbr_c.id_code_othersbr_nmil                                                                          as insured_unique_id_60c,
                 claim_othersbr_c.group_name_othersbr                                                                            as insured_group_name_61c,
                 claim_othersbr_c.group_number_othersbr                                                                          as insurance_group_number_62c,
-
-
-
                 
+
+                --  TREATMENT AUTH CODES
                 clm_ref_treatment_auth_codes_array[0]::varchar                                                                  as treatment_auth_codes_63a,
                 clm_ref_treatment_auth_codes_array[1]::varchar                                                                  as treatment_auth_codes_63b,
                 clm_ref_treatment_auth_codes_array[2]::varchar                                                                  as treatment_auth_codes_63c,
-                NULL                                                                                                            as document_control_num_64,--Not found
-                NULL                                                                                                            as employer_name_65,--***Not found
-
+                NULL                                                                                                            as document_control_num_64,         --On neither UB nor 837.
+                NULL                                                                                                            as employer_name_65,                --On UB, not in 837.
+                
+                
+                --  DIAGNOSIS ARRAY & PROCEDURE CODES
                 split(abk_abf[0],   ':')[1]::varchar                                                                            as dx_66_0A,
                 split(abk_abf[0],   ':')[8]::varchar                                                                            as dx_66_0B,
                 split(abk_abf[1],   ':')[1]::varchar                                                                            as dx_66_1A,
@@ -315,23 +340,24 @@ with last_response as
                 split(abn[0],       ':')[1]::varchar                                                                            as ec_72a,
                 split(abn[1],       ':')[1]::varchar                                                                            as ec_72b,
                 split(abn[2],       ':')[1]::varchar                                                                            as ec_72c,
-                NULL                                                                                                            as empty_73,--Not found
+                NULL                                                                                                            as empty_73,                        --On neither UB nor 837.
 
                 split(bbr[0],       ':')[1]::varchar                                                                            as prin_proc_code_74,
                 to_varchar(to_date(split(bbr[0],    ':')[3]::varchar, 'YYYYMMDD'), 'MMDDYY')                                    as prin_proc_date_74,
                 split(bbq[0],       ':')[1]::varchar                                                                            as other_proc_code_74a,
                 to_varchar(to_date(split(bbq[0],    ':')[3]::varchar, 'YYYYMMDD'), 'MMDDYY')                                    as other_proc_date_74a,
-                NULL                                                                                                            as other_proc_code_74b,--Not found
-                NULL                                                                                                            as other_proc_date_74b,--Not found
-                NULL                                                                                                            as other_proc_code_74c,--Not found
-                NULL                                                                                                            as other_proc_date_74c,--Not found
-                NULL                                                                                                            as other_proc_code_74d,--Not found
-                NULL                                                                                                            as other_proc_date_74d,--Not found
-                NULL                                                                                                            as other_proc_code_74e,--Not found
-                NULL                                                                                                            as other_proc_date_74e,--Not found
-                NULL                                                                                                            as empty_75,--Not found
-
-
+                NULL                                                                                                            as other_proc_code_74b,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_date_74b,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_code_74c,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_date_74c,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_code_74d,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_date_74d,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_code_74e,             --On neither UB nor 837.
+                NULL                                                                                                            as other_proc_date_74e,             --On neither UB nor 837.
+                NULL                                                                                                            as empty_75,                        --On neither UB nor 837.
+                
+                
+                --  PHYSICIAN INFORMATION
                 claims.id_code_attending                                                                                        as attending_npi_76a,
                 claims.last_name_org_attending                                                                                  as attending_last_name_76c,
                 claims.first_name_attending                                                                                     as attending_first_name_76d,
@@ -340,21 +366,23 @@ with last_response as
                 claims.last_name_org_operating                                                                                  as operating_last_name_77c,
                 claims.first_name_operating                                                                                     as operating_first_name_77d,
 
-                NULL                                                                                                            as other1_npi_78a,--Not found
-                NULL                                                                                                            as other1_last_name_78c,--Not found
-                NULL                                                                                                            as other1_first_name_78d,--Not found
+                NULL                                                                                                            as other1_npi_78a,                  --On neither UB nor 837.
+                NULL                                                                                                            as other1_last_name_78c,            --On neither UB nor 837.
+                NULL                                                                                                            as other1_first_name_78d,           --On neither UB nor 837.
 
-                NULL                                                                                                            as other2_npi_79a,--Not found
-                NULL                                                                                                            as other2_last_name_79c,--Not found
-                NULL                                                                                                            as other2_first_name_79d,--Not found
+                NULL                                                                                                            as other2_npi_79a,                  --On neither UB nor 837.
+                NULL                                                                                                            as other2_last_name_79c,            --On neither UB nor 837.
+                NULL                                                                                                            as other2_first_name_79d,           --On neither UB nor 837.
                 
-                NULL                                                                                                            as remarks_80,--Not found
-                hl_providers.provider_taxonomy_code_provider                                                                    as cc_81, --***Can't find B3 prefix
+                
+                --  FOOTER
+                NULL                                                                                                            as remarks_80,                      --On neither UB nor 837.
+                hl_providers.provider_taxonomy_code_provider                                                                    as cc_81,                           --On UB, not in 837.
 
-                claims.total_claim_charge                                                                                       as total_charges_47_sum,
-
+                
+                --  CHARGES
                 lx.revenue_code                                                                                                 as revenue_code_42,
-                lx.description_lx                                                                                               as description_43,              --blank on 837,         populated on form
+                lx.description_lx                                                                                               as description_43,                  --On UB, not in 837.
                 regexp_substr(lx.procedure_code, '\\d+$')                                                                       as hipps_code_44,
                 case    when    regexp_like(lx.date_lx, '^\\d{4}\\-\\d{2}\\-\\d{2}$')
                         then    to_varchar(lx.date_lx::date, 'MMDDYY')
@@ -362,6 +390,7 @@ with last_response as
                         end                                                                                                     as service_date_45,
                 lx.service_units                                                                                                as service_units_46,
                 lx.charge_amount                                                                                                as total_charges_47,
+                claims.total_claim_charge                                                                                       as total_charges_47_sum,
                 lx.sv2_mod_2                                                                                                    as non_covered_charges_48,
                 NULL                                                                                                            as empty_49,
 
@@ -376,14 +405,13 @@ with last_response as
                     on  claims.response_id          = hl_providers.response_id
                     and claims.nth_transaction_set  = hl_providers.nth_transaction_set
                 
-                --currently, potential 1:M join here. find an example with multiple and extract wide-ly.
                 -- Do NOT use coalesce() on fields from below. If patient is present but some fields null, then could mix with Subscriber.
                 left join
-                    edwprodhh.edi_837_parser.hl_subscribers as hl_subscribers
+                    edwprodhh.edi_837_parser.hl_subscribers as hl_subscribers                   --effectively "claim_othersbr_a" for payer.
                     on  claims.response_id          = hl_subscribers.response_id
                     and claims.nth_transaction_set  = hl_subscribers.nth_transaction_set
                 left join
-                    edwprodhh.edi_837_parser.hl_patients as hl_patients
+                    edwprodhh.edi_837_parser.hl_patients as hl_patients                         --effectively "claim_othersbr_a" for policyholder.
                     on  claims.response_id          = hl_patients.response_id
                     and claims.nth_transaction_set  = hl_patients.nth_transaction_set
 
@@ -412,6 +440,7 @@ with last_response as
     -- where       claims.clm_ref_medical_record_num = '78580670'
     -- where       claims.claim_id = '1219568894'
     where       claims.claim_id = '1236359806'
+    order by    1,2,3,4
 )
 select      joined.*
 from        joined
