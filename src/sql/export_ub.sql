@@ -189,7 +189,7 @@ with last_response as
                     coalesce(hl_subscribers.city_subscriber_payor, '') || ', ' ||
                     coalesce(hl_subscribers.st_subscriber_payor, '') || ' ' ||
                     coalesce(hl_subscribers.zip_subscriber_payor, '')
-                , '\\s*\\,?\\s*$'), '')                                                                                         as payor_38a,                       --Always on UB, sometimes found on some 837s. See this example where address found on different Claim ID. claims.clm_ref_medical_record_num = '59652740'
+                , '\\s*\\,?\\s*$'), '')                                                                                         as payor_38a,                       --Always on UB, sometimes found on some 837s.
                 
 
                 --  PAYER ADJUSTMENTS
@@ -222,7 +222,7 @@ with last_response as
                 --  PAYER ARRAY
                 --  PAYER A
                 hl_subscribers.last_name_org_subscriber_payor                                                                   as payer_name_50a,
-                NULL                                                                                                            as health_plan_id_51a,              --On neither UB nor 837.
+                hl_subscribers.id_code_subscriber_payor                                                                         as health_plan_id_51a,              --On neither UB nor 837.
                 claims.release_of_info_code                                                                                     as release_of_info_52a,
                 claims.benefits_assignment_indicator                                                                            as benefits_assignment_53a,
                 NULL                                                                                                            as prior_payments_54a,              --On neither UB nor 837.
@@ -230,7 +230,7 @@ with last_response as
 
                 --  PAYER B
                 claim_othersbr_b.last_name_org_otherpyr                                                                         as payer_name_50b,
-                NULL                                                                                                            as health_plan_id_51b,
+                claim_othersbr_b.id_code_othersbr_nmpr                                                                          as health_plan_id_51b,
                 claim_othersbr_b.release_of_info_othersbr                                                                       as release_of_info_52b,
                 claim_othersbr_b.benefits_assignment_othersbr                                                                   as benefits_assignment_53b,
                 NULL                                                                                                            as prior_payments_54b,
@@ -238,7 +238,7 @@ with last_response as
 
                 --  PAYER C
                 claim_othersbr_c.last_name_org_otherpyr                                                                         as payer_name_50c,
-                NULL                                                                                                            as health_plan_id_51c,
+                claim_othersbr_c.id_code_othersbr_nmpr                                                                          as health_plan_id_51c,
                 claim_othersbr_c.release_of_info_othersbr                                                                       as release_of_info_52c,
                 claim_othersbr_c.benefits_assignment_othersbr                                                                   as benefits_assignment_53c,
                 NULL                                                                                                            as prior_payments_54c,
@@ -359,10 +359,12 @@ with last_response as
                 
                 --  PHYSICIAN INFORMATION
                 claims.id_code_attending                                                                                        as attending_npi_76a,
+                claims.entity_identifier_code_attending                                                                         as attending_qualifier_76b,
                 claims.last_name_org_attending                                                                                  as attending_last_name_76c,
                 claims.first_name_attending                                                                                     as attending_first_name_76d,
 
                 claims.id_code_operating                                                                                        as operating_npi_77a,
+                claims.entity_identifier_code_operating                                                                         as operating_qualifier_77b,
                 claims.last_name_org_operating                                                                                  as operating_last_name_77c,
                 claims.first_name_operating                                                                                     as operating_first_name_77d,
 
@@ -383,7 +385,7 @@ with last_response as
                 --  CHARGES
                 lx.revenue_code                                                                                                 as revenue_code_42,
                 lx.description_lx                                                                                               as description_43,                  --On UB, not in 837.
-                regexp_substr(lx.procedure_code, '\\d+$')                                                                       as hipps_code_44,
+                regexp_replace(regexp_substr(lx.procedure_code, '\\d+(\\:\\w*)?$'), ':', ' ')                                   as hipps_code_44,
                 case    when    regexp_like(lx.date_lx, '^\\d{4}\\-\\d{2}\\-\\d{2}$')
                         then    to_varchar(lx.date_lx::date, 'MMDDYY')
                         else    NULL
@@ -434,37 +436,14 @@ with last_response as
                     and claims.nth_transaction_set  = lx.nth_transaction_set
                     and claims.claim_index          = lx.claim_index
 
-    -- where       claims.response_id = '5e0e5f0ed2b772cb8b5b65c31f8830c5a46f51b5ee9fdf88ccf2224277a422ca' and claims.nth_transaction_set = 10188
-    -- where       claims.response_id = '3b5e3a7a01072474be18ac785d0b99d78f80040e5518c7789341b147af30d002' and claims.nth_transaction_set = 3631
-    -- where       claims.clm_ref_medical_record_num = '59652740'
-    -- where       claims.clm_ref_medical_record_num = '78580670'
-    -- where       claims.claim_id = '1219568894'
-    where       claims.claim_id = '1236359806'
+    where       claims.claim_id = '1236421390'
+                    
     order by    1,2,3,4
 )
-select      joined.*
+select      *
 from        joined
 order by    response_id,
             nth_transaction_set,
             claim_id,
             lx_assigned_line_number::number
-;
-
-
-
-
-select      *
-from        edwprodhh.edi_837_parser.response_flat
--- where       response_id = 'dd31bebf88b998106d3a097eedf25a5166e345a6ef3c508843eaa1e7e3240bfb' and nth_transaction_set = 7764
-where       response_id = '2c192bf04bf4f49c9655b1d54f1198dd1e1d31ef69193d260adf88d144d4d7d9' and nth_transaction_set = 11046 --duplicated, hipps code, multiple payers
-            -- and line_element_837 ilike '%DISABLE%'
-order by    index
-;
-
-
-select      *
--- from        edwprodhh.edi_837_parser.hl_patients
-from        edwprodhh.edi_837_parser.hl_subscribers
-where       response_id = 'dd31bebf88b998106d3a097eedf25a5166e345a6ef3c508843eaa1e7e3240bfb'
-            and nth_transaction_set = 7764
 ;
