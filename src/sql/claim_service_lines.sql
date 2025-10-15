@@ -299,6 +299,11 @@ order by    1,2,3
 
 
 
+create or replace task
+    edwprodhh.pub_jchang.insert_claim_service_lines
+    warehouse = analysis_wh
+    after edwprodhh.pub_jchang.insert_response_flat
+as
 insert into
     edwprodhh.edi_837_parser.claim_service_lines
 (
