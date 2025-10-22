@@ -1,3 +1,6 @@
+create or replace view
+    edwprodhh.edi_837_parser.export_data_dimensions
+as
 with debtor as
 (
     select      debtor.debtor_idx,
@@ -38,8 +41,6 @@ with debtor as
                                                     claims.claim_id
                                     order by        file_dates.file_date    desc,
                                                     claims.claim_index      desc)           = 1
-
-    limit       10 --just for testing
 )
 , transaction_set as
 (
