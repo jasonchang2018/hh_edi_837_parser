@@ -1,10 +1,10 @@
 create or replace table
-    edwprodhh.edi_837_parser.claim_additional_subscribers
+    edwprodhh.edi_837i_parser.claim_additional_subscribers
 as
 with filtered_clm_sbr as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
                 and other_sbr_index is not null
                 and lx_index is null
@@ -927,7 +927,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.claim_additional_subscribers
+    edwprodhh.edi_837i_parser.claim_additional_subscribers
 (
     RESPONSE_ID,
     NTH_TRANSACTION_SET,
@@ -1001,11 +1001,11 @@ insert into
 with filtered_clm_sbr as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
                 and other_sbr_index is not null
                 and lx_index is null
-                and response_id not in (select response_id from edwprodhh.edi_837_parser.claim_additional_subscribers)
+                and response_id not in (select response_id from edwprodhh.edi_837i_parser.claim_additional_subscribers)
 )
 , claim_sbr_header as
 (

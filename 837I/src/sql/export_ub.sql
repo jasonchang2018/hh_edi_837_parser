@@ -1,7 +1,7 @@
 -- Sample UB files: T:\Complex Claims\IU\PATIENT FOLDERS
 
 create or replace view
-    edwprodhh.edi_837_parser.export_ub
+    edwprodhh.edi_837i_parser.export_ub
 as
 with last_response as
 (
@@ -10,11 +10,11 @@ with last_response as
         select      distinct
                     response_id,
                     file_date
-        from        edwprodhh.edi_837_parser.response_flat
+        from        edwprodhh.edi_837i_parser.response_flat
     )
     select      claims.claim_id,
                 claims.response_id
-    from        edwprodhh.edi_837_parser.claims as claims
+    from        edwprodhh.edi_837i_parser.claims as claims
                 inner join
                     file_dates
                     on claims.response_id = file_dates.response_id
@@ -23,13 +23,13 @@ with last_response as
 , claim_othersbr_b as
 (
     select      *
-    from        edwprodhh.edi_837_parser.claim_additional_subscribers
+    from        edwprodhh.edi_837i_parser.claim_additional_subscribers
     qualify     row_number() over (partition by response_id, nth_transaction_set, claim_index order by index asc) = 1
 )
 , claim_othersbr_c as
 (
     select      *
-    from        edwprodhh.edi_837_parser.claim_additional_subscribers
+    from        edwprodhh.edi_837i_parser.claim_additional_subscribers
     qualify     row_number() over (partition by response_id, nth_transaction_set, claim_index order by index asc) = 2
 )
 , joined as
@@ -396,24 +396,24 @@ with last_response as
                 lx.sv2_mod_2                                                                                                    as non_covered_charges_48,
                 NULL                                                                                                            as empty_49,
 
-    from        edwprodhh.edi_837_parser.claims as claims
+    from        edwprodhh.edi_837i_parser.claims as claims
                 inner join
                     last_response
                     on  claims.claim_id     = last_response.claim_id
                     and claims.response_id  = last_response.response_id
 
                 left join
-                    edwprodhh.edi_837_parser.hl_billing_providers as hl_providers
+                    edwprodhh.edi_837i_parser.hl_billing_providers as hl_providers
                     on  claims.response_id          = hl_providers.response_id
                     and claims.nth_transaction_set  = hl_providers.nth_transaction_set
                 
                 -- Do NOT use coalesce() on fields from below. If patient is present but some fields null, then could mix with Subscriber.
                 left join
-                    edwprodhh.edi_837_parser.hl_subscribers as hl_subscribers                   --effectively "claim_othersbr_a" for payer.
+                    edwprodhh.edi_837i_parser.hl_subscribers as hl_subscribers                   --effectively "claim_othersbr_a" for payer.
                     on  claims.response_id          = hl_subscribers.response_id
                     and claims.nth_transaction_set  = hl_subscribers.nth_transaction_set
                 left join
-                    edwprodhh.edi_837_parser.hl_patients as hl_patients                         --effectively "claim_othersbr_a" for policyholder.
+                    edwprodhh.edi_837i_parser.hl_patients as hl_patients                         --effectively "claim_othersbr_a" for policyholder.
                     on  claims.response_id          = hl_patients.response_id
                     and claims.nth_transaction_set  = hl_patients.nth_transaction_set
 
@@ -431,7 +431,7 @@ with last_response as
 
                 --intentional 1:M join here
                 left join
-                    edwprodhh.edi_837_parser.claim_service_lines as lx
+                    edwprodhh.edi_837i_parser.claim_service_lines as lx
                     on  claims.response_id          = lx.response_id
                     and claims.nth_transaction_set  = lx.nth_transaction_set
                     and claims.claim_index          = lx.claim_index

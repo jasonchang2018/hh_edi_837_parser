@@ -1,5 +1,5 @@
 create or replace table
-    edwprodhh.edi_837_parser.response_flat
+    edwprodhh.edi_837i_parser.response_flat
 as
 with flattened as
 (
@@ -7,7 +7,7 @@ with flattened as
                 to_date(regexp_replace(regexp_substr(file_name, '(_\\d{6}_)'), '_', ''), 'yymmdd') as file_date,
                 line_number as index,
                 trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', '')) as line_element_837
-    from        edwprodhh.edi_837_parser.response
+    from        edwprodhh.edi_837i_parser.response
 )
 , add_transaction_set_index as
 (  
@@ -67,7 +67,7 @@ create or replace task
     after edwprodhh.pub_jchang.sp_insert_837_from_stage
 as
 insert into
-    edwprodhh.edi_837_parser.response_flat
+    edwprodhh.edi_837i_parser.response_flat
 (
     RESPONSE_ID,
     FILE_DATE,
@@ -89,8 +89,8 @@ with flattened as
                 to_date(regexp_replace(regexp_substr(file_name, '(_\\d{6}_)'), '_', ''), 'yymmdd') as file_date,
                 line_number as index,
                 trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', '')) as line_element_837
-    from        edwprodhh.edi_837_parser.response
-    where       response_id not in (select response_id from edwprodhh.edi_837_parser.response_flat)
+    from        edwprodhh.edi_837i_parser.response
+    where       response_id not in (select response_id from edwprodhh.edi_837i_parser.response_flat)
 )
 , add_transaction_set_index as
 (  

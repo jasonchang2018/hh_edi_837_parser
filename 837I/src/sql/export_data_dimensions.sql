@@ -1,5 +1,5 @@
 create or replace view
-    edwprodhh.edi_837_parser.export_data_dimensions
+    edwprodhh.edi_837i_parser.export_data_dimensions
 as
 with debtor as
 (
@@ -17,7 +17,7 @@ with debtor as
                     edwprodhh.dw.dimdebtor as dimdebtor
                     on debtor.debtor_idx = dimdebtor.debtor_idx
                 inner join
-                    edwprodhh.edi_837_parser.export_data_dimensions_accounts as accounts
+                    edwprodhh.edi_837i_parser.export_data_dimensions_accounts as accounts
                     on debtor.debtor_idx = accounts.debtor_idx
     where       debtor.pl_group = 'IU HEALTH - TPL'
                 and dimdebtor.desk in ('IU7', 'I14')
@@ -29,7 +29,7 @@ with debtor as
         select      distinct
                     response_id,
                     file_date
-        from        edwprodhh.edi_837_parser.response_flat
+        from        edwprodhh.edi_837i_parser.response_flat
     )
     , debtor_unique as
     (
@@ -45,7 +45,7 @@ with debtor as
                 ltrim(claims.clm_ref_medical_record_num, '0') as mrn,
                 debtor_unique.debtor_idx,
                 debtor_unique.hbpb
-    from        edwprodhh.edi_837_parser.claims as claims
+    from        edwprodhh.edi_837i_parser.claims as claims
                 inner join
                     file_dates
                     on claims.response_id = file_dates.response_id
@@ -71,7 +71,7 @@ with debtor as
                 response.line_element_837 || '~' as line_element_837,
                 claims.debtor_idx,
                 claims.hbpb
-    from        edwprodhh.edi_837_parser.response_flat as response
+    from        edwprodhh.edi_837i_parser.response_flat as response
                 inner join
                     claims
                     on  response.response_id            = claims.response_id

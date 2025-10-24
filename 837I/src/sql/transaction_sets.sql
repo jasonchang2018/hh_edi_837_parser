@@ -1,10 +1,10 @@
 create or replace table
-    edwprodhh.edi_837_parser.transaction_sets
+    edwprodhh.edi_837i_parser.transaction_sets
 as
 with filtered as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
 )
 , header_st as
 (
@@ -392,7 +392,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.transaction_sets
+    edwprodhh.edi_837i_parser.transaction_sets
 (
     RESPONSE_ID,
     NTH_TRANSACTION_SET,
@@ -443,8 +443,8 @@ insert into
 with filtered as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
-    where       response_id not in (select response_id from edwprodhh.edi_837_parser.transaction_sets)
+    from        edwprodhh.edi_837i_parser.response_flat
+    where       response_id not in (select response_id from edwprodhh.edi_837i_parser.transaction_sets)
 )
 , header_st as
 (

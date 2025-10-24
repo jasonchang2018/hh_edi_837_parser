@@ -1,5 +1,5 @@
 create or replace table
-    edwprodhh.edi_837_parser.export_data_dimensions_accounts
+    edwprodhh.edi_837i_parser.export_data_dimensions_accounts
 as
 select 'HH-72286664' as debtor_idx union all
 select 'HH-72286663' as debtor_idx union all

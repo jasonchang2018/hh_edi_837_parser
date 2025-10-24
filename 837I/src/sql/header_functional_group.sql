@@ -1,5 +1,5 @@
 create or replace table
-    edwprodhh.edi_837_parser.header_functional_group
+    edwprodhh.edi_837i_parser.header_functional_group
 as
 with labeled as
 (
@@ -25,7 +25,7 @@ with labeled as
                         end     as value_format
 
 
-    from        edwprodhh.edi_837_parser.response_flat as flatten_837,
+    from        edwprodhh.edi_837i_parser.response_flat as flatten_837,
                 lateral split_to_table(flatten_837.line_element_837, '*') as flattened      --2 Flatten
 
     where       regexp_like(flatten_837.line_element_837, '^GS.*')                          --1 Filter
@@ -77,7 +77,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.header_functional_group
+    edwprodhh.edi_837i_parser.header_functional_group
 (
     RESPONSE_ID,
     FUNCTIONAL_GROUP_HEADER,
@@ -115,11 +115,11 @@ with labeled as
                         end     as value_format
 
 
-    from        edwprodhh.edi_837_parser.response_flat as flatten_837,
+    from        edwprodhh.edi_837i_parser.response_flat as flatten_837,
                 lateral split_to_table(flatten_837.line_element_837, '*') as flattened      --2 Flatten
 
     where       regexp_like(flatten_837.line_element_837, '^GS.*')                          --1 Filter
-                and flatten_837.response_id not in (select response_id from edwprodhh.edi_837_parser.header_functional_group)
+                and flatten_837.response_id not in (select response_id from edwprodhh.edi_837i_parser.header_functional_group)
 )
 select      response_id,
             functional_group_header,

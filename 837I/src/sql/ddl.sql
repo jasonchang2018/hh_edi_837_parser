@@ -1,11 +1,11 @@
-create schema edwprodhh.edi_837_parser;
+create schema edwprodhh.edi_837i_parser;
 
 create stage
-    edwprodhh.edi_837_parser.stg_response
+    edwprodhh.edi_837i_parser.stg_response
 ;
 
 create table
-    edwprodhh.edi_837_parser.response
+    edwprodhh.edi_837i_parser.response
 (
     response_id     varchar,
     response_body   varchar,
@@ -16,17 +16,17 @@ create table
 ;
 
 create table
-    edwprodhh.edi_837_parser.response_files
+    edwprodhh.edi_837i_parser.response_files
 (
     file_name       varchar
 )
 ;
 
--- snowsql -q "PUT file://\\\\hh-fileserver01\\TempUL2\\IU_Health_Complex\\837_FILES_IN\\2025\\*.837 @edwprodhh.edi_837_parser.stg_response auto_compress=false;"
--- list @edwprodhh.edi_837_parser.stg_response;
+-- snowsql -q "PUT file://\\\\hh-fileserver01\\TempUL2\\IU_Health_Complex\\837_FILES_IN\\2025\\*.837 @edwprodhh.edi_837i_parser.stg_response auto_compress=false;"
+-- list @edwprodhh.edi_837i_parser.stg_response;
 
 create or replace file format
-    edwprodhh.edi_837_parser.format_txt
+    edwprodhh.edi_837i_parser.format_txt
 type                            = 'CSV'
 field_delimiter                 = '\u0000'  -- an impossible delimiter; treats entire row as one value.
 -- record_delimiter                = NONE      -- forces all lines as one value.

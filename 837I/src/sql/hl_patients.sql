@@ -1,10 +1,10 @@
 create or replace table
-    edwprodhh.edi_837_parser.hl_patients
+    edwprodhh.edi_837i_parser.hl_patients
 as
 with filtered_hl as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat as filtered
+    from        edwprodhh.edi_837i_parser.response_flat as filtered
     where       hl_index_billing_20         is not null                                          --0 Pre-Filter
                 and hl_index_subscriber_22  is not null
                 and hl_index_patient_23     is not null
@@ -480,7 +480,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.hl_patients
+    edwprodhh.edi_837i_parser.hl_patients
 (
     RESPONSE_ID,
     NTH_TRANSACTION_SET,
@@ -539,12 +539,12 @@ insert into
 with filtered_hl as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat as filtered
+    from        edwprodhh.edi_837i_parser.response_flat as filtered
     where       hl_index_billing_20         is not null                                          --0 Pre-Filter
                 and hl_index_subscriber_22  is not null
                 and hl_index_patient_23     is not null
                 and claim_index             is null
-                and response_id not in (select response_id from edwprodhh.edi_837_parser.hl_patients)
+                and response_id not in (select response_id from edwprodhh.edi_837i_parser.hl_patients)
 )
 , patient_hl as
 (

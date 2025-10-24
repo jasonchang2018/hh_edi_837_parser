@@ -1,10 +1,10 @@
 create or replace table
-    edwprodhh.edi_837_parser.claims
+    edwprodhh.edi_837i_parser.claims
 as
 with filtered_clm as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
 )
 , header_clm as
@@ -971,7 +971,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.claims
+    edwprodhh.edi_837i_parser.claims
 (
     RESPONSE_ID,
     NTH_TRANSACTION_SET,
@@ -1047,9 +1047,9 @@ insert into
 with filtered_clm as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
-                and response_id not in (select response_id from edwprodhh.edi_837_parser.claims)
+                and response_id not in (select response_id from edwprodhh.edi_837i_parser.claims)
 )
 , header_clm as
 (

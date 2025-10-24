@@ -1,5 +1,5 @@
 create or replace table
-    edwprodhh.edi_837_parser.header_interchange_control
+    edwprodhh.edi_837i_parser.header_interchange_control
 as
 with labeled as
 (
@@ -32,7 +32,7 @@ with labeled as
                         else    nullif(trim(flattened.value), '')
                         end     as value_format
 
-    from        edwprodhh.edi_837_parser.response_flat as flatten_837,
+    from        edwprodhh.edi_837i_parser.response_flat as flatten_837,
                 lateral split_to_table(flatten_837.line_element_837, '*') as flattened      --2 Flatten
 
     where       regexp_like(flatten_837.line_element_837, '^ISA.*')                         --1 Filter
@@ -108,7 +108,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.header_interchange_control
+    edwprodhh.edi_837i_parser.header_interchange_control
 (
     RESPONSE_ID,
     INTERCHANGE_CONTROL_HEADER,
@@ -161,11 +161,11 @@ with labeled as
                         else    nullif(trim(flattened.value), '')
                         end     as value_format
 
-    from        edwprodhh.edi_837_parser.response_flat as flatten_837,
+    from        edwprodhh.edi_837i_parser.response_flat as flatten_837,
                 lateral split_to_table(flatten_837.line_element_837, '*') as flattened      --2 Flatten
 
     where       regexp_like(flatten_837.line_element_837, '^ISA.*')                         --1 Filter
-                and flatten_837.response_id not in (select response_id from edwprodhh.edi_837_parser.header_interchange_control)
+                and flatten_837.response_id not in (select response_id from edwprodhh.edi_837i_parser.header_interchange_control)
 )
 select      response_id,
             interchange_control_header,

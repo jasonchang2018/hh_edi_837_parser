@@ -3,12 +3,12 @@
 --  Potential solutions: aggregate (preferred) or delete.
 
 create or replace table
-    edwprodhh.edi_837_parser.claim_service_lines
+    edwprodhh.edi_837i_parser.claim_service_lines
 as
 with filtered_lx as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
                 and lx_index is not null
 )
@@ -461,7 +461,7 @@ create or replace task
     after edwprodhh.pub_jchang.insert_response_flat
 as
 insert into
-    edwprodhh.edi_837_parser.claim_service_lines
+    edwprodhh.edi_837i_parser.claim_service_lines
 (
     RESPONSE_ID,
     NTH_TRANSACTION_SET,
@@ -501,7 +501,7 @@ insert into
 with filtered_lx as
 (
     select      *
-    from        edwprodhh.edi_837_parser.response_flat
+    from        edwprodhh.edi_837i_parser.response_flat
     where       claim_index is not null --0 Pre-Filter
                 and lx_index is not null
 )
