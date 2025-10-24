@@ -7,7 +7,7 @@
 -- list @edwprodhh.edi_837_parser.stg_response;
 
 create or replace procedure
-    edwprodhh.hermes.insert_837_from_stage(EXECUTE_TIME TIMESTAMP_LTZ(9))
+    edwprodhh.edi_837_parser.insert_837_from_stage(EXECUTE_TIME TIMESTAMP_LTZ(9))
 returns     boolean
 language    sql
 as
@@ -23,7 +23,7 @@ begin
     from        (
                     select      $1,
                                 metadata$filename,
-                                seq4() as seq
+                                METADATA$FILE_ROW_NUMBER as seq
                     from        @edwprodhh.edi_837_parser.stg_response
                                 (file_format => edwprodhh.edi_837_parser.format_txt)
                     where       METADATA$FILENAME not in (select file_name from edwprodhh.edi_837_parser.response_files)
@@ -48,5 +48,5 @@ create or replace task
     warehouse = analysis_wh
     schedule = 'USING CRON 0 1 * * * America/Chicago'
 as
-call    edwprodhh.hermes.insert_837_from_stage(current_timestamp())
+call    edwprodhh.edi_837_parser.insert_837_from_stage(current_timestamp())
 ;
