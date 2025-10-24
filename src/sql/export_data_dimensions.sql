@@ -4,6 +4,11 @@ as
 with debtor as
 (
     select      debtor.debtor_idx,
+                case    when    debtor.client_idx = 'HH-2175NLIHB'
+                        then    'HB'
+                        when    debtor.client_idx = 'HH-2175NLIPB'
+                        then    'PB'
+                        end     as hbpb,
                 ltrim(nullif(trim(dimdebtor.cdn), ''), '0') as cdn,
                 ltrim(nullif(trim(dimdebtor.drl), ''), '0') as drl,
                 dimdebtor.desk
@@ -11,6 +16,9 @@ with debtor as
                 inner join
                     edwprodhh.dw.dimdebtor as dimdebtor
                     on debtor.debtor_idx = dimdebtor.debtor_idx
+                inner join
+                    edwprodhh.edi_837_parser.export_data_dimensions_accounts as accounts
+                    on debtor.debtor_idx = accounts.debtor_idx
     where       debtor.pl_group = 'IU HEALTH - TPL'
                 and dimdebtor.desk in ('IU7', 'I14')
 )
@@ -23,19 +31,29 @@ with debtor as
                     file_date
         from        edwprodhh.edi_837_parser.response_flat
     )
+    , debtor_unique as
+    (
+        select      *
+        from        debtor
+        qualify     row_number() over (partition by drl order by debtor_idx desc) = 1
+    )
     select      claims.response_id,
                 claims.nth_transaction_set,
                 claims.index,
                 claims.claim_index,
                 claims.claim_id,
-                ltrim(claims.clm_ref_medical_record_num, '0') as mrn
+                ltrim(claims.clm_ref_medical_record_num, '0') as mrn,
+                debtor_unique.debtor_idx,
+                debtor_unique.hbpb
     from        edwprodhh.edi_837_parser.claims as claims
                 inner join
                     file_dates
                     on claims.response_id = file_dates.response_id
+                inner join
+                    debtor_unique
+                    on ltrim(claims.clm_ref_medical_record_num, '0') = debtor_unique.drl --can return multiple claims; 1:M relationship between Medical Record Num (MRN) to Claim
 
     where       claims.clm_ref_medical_record_num is not null
-                and mrn in (select drl from debtor) --can return multiple claims; 1:M relationship between Medical Record Num (MRN) to Claim
 
     qualify     row_number() over ( partition by    claims.clm_ref_medical_record_num,
                                                     claims.claim_id
@@ -50,7 +68,9 @@ with debtor as
                 response.file_date,
                 claims.claim_id,
                 claims.mrn, --joins to DIMDEBTOR.DRL. Trim leading 0s.
-                response.line_element_837 || '~' as line_element_837
+                response.line_element_837 || '~' as line_element_837,
+                claims.debtor_idx,
+                claims.hbpb
     from        edwprodhh.edi_837_parser.response_flat as response
                 inner join
                     claims
@@ -69,14 +89,16 @@ with debtor as
 , unioned as
 (
     select      line_element_837,
-                index
+                index,
+                hbpb
     from        transaction_set
     union all
     select      line_element_837,
-                index
+                index,
+                'BOTH' as hbpb
     from        headers
 )
-select      line_element_837
+select      *
 from        unioned
 order by    index
 ;
