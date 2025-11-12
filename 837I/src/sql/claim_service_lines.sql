@@ -157,7 +157,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_PRESCRIPTION'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_PRESCRIPTION'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
@@ -216,7 +216,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_SERVICE'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_SERVICE'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
@@ -275,7 +275,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_PRESCRIPTION_FILLED'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_PRESCRIPTION_FILLED'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
@@ -650,7 +650,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_PRESCRIPTION'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_PRESCRIPTION'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
@@ -709,7 +709,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_SERVICE'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_SERVICE'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
@@ -768,7 +768,7 @@ with filtered_lx as
                             when    flattened.index = 4   then      'DATE_LX_PRESCRIPTION_FILLED'
                             end     as value_header,
 
-                    case    when    value_header = 'DATE_LX'
+                    case    when    value_header = 'DATE_LX_PRESCRIPTION_FILLED'
                             and     regexp_like(flattened.value, '^\\d{8}$')
                             then    to_date(nullif(trim(flattened.value), ''), 'YYYYMMDD')::varchar
                             else    nullif(trim(flattened.value), '')
