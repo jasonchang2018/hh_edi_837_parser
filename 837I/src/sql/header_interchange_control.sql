@@ -103,9 +103,9 @@ order by    1
 
 
 create or replace task
-    edwprodhh.pub_jchang.insert_header_interchange_control
+    edwprodhh.edi_837i_parser.insert_header_interchange_control
     warehouse = analysis_wh
-    after edwprodhh.pub_jchang.insert_response_flat
+    after edwprodhh.edi_837i_parser.insert_response_flat
 as
 insert into
     edwprodhh.edi_837i_parser.header_interchange_control

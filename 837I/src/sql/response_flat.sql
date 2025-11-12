@@ -62,9 +62,9 @@ order by    1,2
 
 
 create or replace task
-    edwprodhh.pub_jchang.insert_response_flat
+    edwprodhh.edi_837i_parser.insert_response_flat
     warehouse = analysis_wh
-    after edwprodhh.pub_jchang.sp_insert_837_from_stage
+    after edwprodhh.edi_837i_parser.sp_insert_837i_from_stage
 as
 insert into
     edwprodhh.edi_837i_parser.response_flat

@@ -7,7 +7,7 @@
 -- list @edwprodhh.edi_837i_parser.stg_response;
 
 create or replace procedure
-    edwprodhh.edi_837i_parser.insert_837_from_stage(EXECUTE_TIME TIMESTAMP_LTZ(9))
+    edwprodhh.edi_837i_parser.insert_837i_from_stage(EXECUTE_TIME TIMESTAMP_LTZ(9))
 returns     boolean
 language    sql
 as
@@ -46,9 +46,9 @@ end
 
 
 create or replace task
-    edwprodhh.pub_jchang.sp_insert_837_from_stage
+    edwprodhh.edi_837i_parser.sp_insert_837i_from_stage
     warehouse = analysis_wh
     schedule = 'USING CRON 0 1 * * * America/Chicago'
 as
-call    edwprodhh.edi_837i_parser.insert_837_from_stage(current_timestamp())
+call    edwprodhh.edi_837i_parser.insert_837i_from_stage(current_timestamp())
 ;
