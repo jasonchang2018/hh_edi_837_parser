@@ -3,7 +3,7 @@
 
 
 -- Add raw 837 files to stage.
--- snowsql -q "PUT file://\\\\hh-fileserver01\\TempUL2\\IU_Health_Complex\\837_FILES_IN\\2025\\*.837 @edwprodhh.edi_837i_parser.stg_response auto_compress=false;"
+-- snowsql -q "PUT file://\\\\hh-fileserver01\\TempUL2\\IU_Health_Complex\\837_FILES_IN\\2025\\*_i*.837 @edwprodhh.edi_837i_parser.stg_response auto_compress=false;"
 -- list @edwprodhh.edi_837i_parser.stg_response;
 
 create or replace procedure
@@ -27,6 +27,8 @@ begin
                     from        @edwprodhh.edi_837i_parser.stg_response
                                 (file_format => edwprodhh.edi_837i_parser.format_txt)
                     where       METADATA$FILENAME not in (select file_name from edwprodhh.edi_837i_parser.response_files)
+                                and left(METADATA$FILENAME, 8) != 'internal'
+                                and left(regexp_substr(upper(METADATA$FILENAME), '([^_]*)\\.837$', 1, 1, 'e'), 1) = 'I'
                 )
     ;
 
