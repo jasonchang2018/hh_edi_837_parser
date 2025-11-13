@@ -1,6 +1,5 @@
 import snowflake.connector
 from datetime import datetime
-from pathlib import Path
 import pandas as pd
 import re
 
@@ -35,9 +34,9 @@ for value, group_df in df.groupby("PL_GROUP"):
 
     results_text = ("\n".join(
         group_df
-        .sort_values(by = group_df.columns[1])
-        .iloc[:, 0]
-        .astype(str)
+            .sort_values(by = group_df.columns[1])
+            .iloc[:, 0]
+            .astype(str)
     ))
 
     # results_text = "\n".join(group_df.iloc[:, 0].astype(str).tolist())  
