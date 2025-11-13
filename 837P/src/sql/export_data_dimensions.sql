@@ -1,77 +1,49 @@
 create or replace view
-    edwprodhh.edi_837p_parser.export_data_dimensions
+    edwprodhh.edi_837i_parser.export_data_dimensions
 as
-with debtor as
+with claims as
 (
-    select      debtor.debtor_idx,
-                case    when    debtor.client_idx = 'HH-2175NLIHB'
-                        then    'HB'
-                        when    debtor.client_idx = 'HH-2175NLIPB'
-                        then    'PB'
-                        end     as hbpb,
-                ltrim(nullif(trim(dimdebtor.cdn), ''), '0') as cdn,
-                ltrim(nullif(trim(dimdebtor.drl), ''), '0') as drl,
-                dimdebtor.desk
-    from        edwprodhh.pub_jchang.master_debtor as debtor
-                inner join
-                    edwprodhh.dw.dimdebtor as dimdebtor
-                    on debtor.debtor_idx = dimdebtor.debtor_idx
-                inner join
-                    edwprodhh.edi_837p_parser.export_data_dimensions_accounts as accounts
-                    on debtor.debtor_idx = accounts.debtor_idx
-    where       debtor.pl_group = 'IU HEALTH - TPL'
-                and dimdebtor.desk in ('IU7', 'I14')
-)
-, claims as
-(
-    with file_dates as
+    with formatted as
     (
-        select      distinct
-                    response_id,
-                    file_date
-        from        edwprodhh.edi_837p_parser.response_flat
+        with file_dates as
+        (
+            select      distinct
+                        response_id,
+                        file_date
+            from        edwprodhh.edi_837i_parser.response_flat
+        )
+        select      claims.response_id,
+                    claims.nth_transaction_set,
+                    claims.index,
+                    claims.claim_index,
+                    ltrim(claims.clm_ref_medical_record_num,    '0')    as mrn_,
+                    ltrim(claims.claim_id,                      '0')    as claim_id_
+        from        edwprodhh.edi_837i_parser.claims as claims
+                    inner join
+                        file_dates
+                        on claims.response_id = file_dates.response_id
+        where       mrn_ is not null
+        qualify     row_number() over ( partition by    mrn_,
+                                                        claim_id_
+                                        order by        file_dates.file_date    desc,
+                                                        claims.claim_index      desc)   = 1
     )
-    , debtor_unique as
-    (
-        select      *
-        from        debtor
-        qualify     row_number() over (partition by drl order by debtor_idx desc) = 1
-    )
-    select      claims.response_id,
-                claims.nth_transaction_set,
-                claims.index,
-                claims.claim_index,
-                claims.claim_id,
-                ltrim(claims.clm_ref_medical_record_num, '0') as mrn,
-                debtor_unique.debtor_idx,
-                debtor_unique.hbpb
-    from        edwprodhh.edi_837p_parser.claims as claims
+    select      formatted.*,
+                debtor.pl_group
+    from        formatted
                 inner join
-                    file_dates
-                    on claims.response_id = file_dates.response_id
-                inner join
-                    debtor_unique
-                    on ltrim(claims.clm_ref_medical_record_num, '0') = debtor_unique.drl --can return multiple claims; 1:M relationship between Medical Record Num (MRN) to Claim
-
-    where       claims.clm_ref_medical_record_num is not null
-
-    qualify     row_number() over ( partition by    claims.clm_ref_medical_record_num,
-                                                    claims.claim_id
-                                    order by        file_dates.file_date    desc,
-                                                    claims.claim_index      desc)           = 1
+                    edwprodhh.edi_837i_parser.export_data_dimensions_accounts as debtor
+                    on  formatted.mrn_      = debtor.drl
+                    and formatted.claim_id_ = debtor.cdn
 )
-, transaction_set as
+, response_lines as
 (
     select      response.response_id,
                 response.index,
                 response.nth_transaction_set,
-                response.file_date,
-                claims.claim_id,
-                claims.mrn, --joins to DIMDEBTOR.DRL. Trim leading 0s.
                 response.line_element_837 || '~' as line_element_837,
-                claims.debtor_idx,
-                claims.hbpb
-    from        edwprodhh.edi_837p_parser.response_flat as response
+                claims.pl_group
+    from        edwprodhh.edi_837i_parser.response_flat as response
                 inner join
                     claims
                     on  response.response_id            = claims.response_id
@@ -80,25 +52,40 @@ with debtor as
 )
 , headers as
 (
-    select      'ISA*00*          *00*          *ZZ*' || rpad('580977458', 15, ' ') || '*ZZ*' || rpad('12345678', 15, ' ') || '*' || to_varchar(current_timestamp(), 'yymmdd*hh24mi') || '*^*00501*000000001*1*P*:~'  as line_element_837,
-                -2                                                                                                                              as index
-    union all
-    select      'GS*HC*580977458*12345678*' || to_varchar(current_timestamp(), 'yyyymmdd*hh24mi') || '*000000001*X*005010X223A2~'            as line_element_837,
-                -1                                                                                                                              as index
+    with header_lines as
+    (
+        select      'ISA*00*          *00*          *ZZ*' || rpad('580977458', 15, ' ') || '*ZZ*' || rpad('12345678', 15, ' ') || '*' || to_varchar(current_timestamp(), 'yymmdd*hh24mi') || '*^*00501*000000001*1*P*:~'    as line_element_837,
+                    -2                                                                                                                                                                                                      as index
+        union all
+        select      'GS*HC*580977458*12345678*' || to_varchar(current_timestamp(), 'yyyymmdd*hh24mi') || '*000000001*X*005010X223A2~'                                                                                       as line_element_837,
+                    -1                                                                                                                                                                                                      as index
+    )
+    , pl_groups as
+    (
+        select      distinct
+                    pl_group
+        from        response_lines
+    )
+    select      header_lines.line_element_837,
+                header_lines.index,
+                pl_groups.pl_group
+    from        header_lines
+                cross join
+                    pl_groups
 )
 , unioned as
 (
     select      line_element_837,
                 index,
-                hbpb
-    from        transaction_set
+                pl_group
+    from        response_lines
     union all
     select      line_element_837,
                 index,
-                'BOTH' as hbpb
+                pl_group
     from        headers
 )
 select      *
 from        unioned
-order by    index
+order by    pl_group, index
 ;
