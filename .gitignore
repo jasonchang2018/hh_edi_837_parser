@@ -6,3 +6,4 @@
 doc/*
 *.ini
 */data/*
+*secrets.txt
