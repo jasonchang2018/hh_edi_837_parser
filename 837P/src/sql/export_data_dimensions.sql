@@ -1,5 +1,5 @@
 create or replace view
-    edwprodhh.edi_837i_parser.export_data_dimensions
+    edwprodhh.edi_837p_parser.export_data_dimensions
 as
 with claims as
 (
@@ -10,7 +10,7 @@ with claims as
             select      distinct
                         response_id,
                         file_date
-            from        edwprodhh.edi_837i_parser.response_flat
+            from        edwprodhh.edi_837p_parser.response_flat
         )
         select      claims.response_id,
                     claims.nth_transaction_set,
@@ -18,7 +18,7 @@ with claims as
                     claims.claim_index,
                     ltrim(claims.clm_ref_medical_record_num,    '0')    as mrn_,
                     ltrim(claims.claim_id,                      '0')    as claim_id_
-        from        edwprodhh.edi_837i_parser.claims as claims
+        from        edwprodhh.edi_837p_parser.claims as claims
                     inner join
                         file_dates
                         on claims.response_id = file_dates.response_id
@@ -32,7 +32,7 @@ with claims as
                 debtor.pl_group
     from        formatted
                 inner join
-                    edwprodhh.edi_837i_parser.export_data_dimensions_accounts as debtor
+                    edwprodhh.edi_837p_parser.export_data_dimensions_accounts as debtor
                     on  formatted.mrn_      = debtor.drl
                     and formatted.claim_id_ = debtor.cdn
 )
@@ -43,7 +43,7 @@ with claims as
                 response.nth_transaction_set,
                 response.line_element_837 || '~' as line_element_837,
                 claims.pl_group
-    from        edwprodhh.edi_837i_parser.response_flat as response
+    from        edwprodhh.edi_837p_parser.response_flat as response
                 inner join
                     claims
                     on  response.response_id            = claims.response_id
