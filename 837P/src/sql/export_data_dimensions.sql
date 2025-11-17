@@ -16,13 +16,13 @@ with claims as
                     claims.nth_transaction_set,
                     claims.index,
                     claims.claim_index,
-                    ltrim(claims.clm_ref_medical_record_num,    '0')    as mrn_,
-                    ltrim(claims.claim_id,                      '0')    as claim_id_
+                    ltrim(claims.clm_ref_medical_record_num, '0')                       as mrn_,
+                    regexp_substr(ltrim(claims.claim_id, '0'), '(\\d*$)', 1, 1, 'e')    as claim_id_
+                    
         from        edwprodhh.edi_837p_parser.claims as claims
                     inner join
                         file_dates
                         on claims.response_id = file_dates.response_id
-        where       mrn_ is not null
         qualify     row_number() over ( partition by    mrn_,
                                                         claim_id_
                                         order by        file_dates.file_date    desc,
@@ -33,8 +33,7 @@ with claims as
     from        formatted
                 inner join
                     edwprodhh.edi_837p_parser.export_data_dimensions_accounts as debtor
-                    on  formatted.mrn_      = debtor.drl
-                    and formatted.claim_id_ = debtor.cdn
+                    on formatted.claim_id_ = debtor.cdn
 )
 , response_lines as
 (

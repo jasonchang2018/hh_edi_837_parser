@@ -22,7 +22,6 @@ with claims as
                     inner join
                         file_dates
                         on claims.response_id = file_dates.response_id
-        where       mrn_ is not null
         qualify     row_number() over ( partition by    mrn_,
                                                         claim_id_
                                         order by        file_dates.file_date    desc,
@@ -33,8 +32,7 @@ with claims as
     from        formatted
                 inner join
                     edwprodhh.edi_837i_parser.export_data_dimensions_accounts as debtor
-                    on  formatted.mrn_      = debtor.drl
-                    and formatted.claim_id_ = debtor.cdn
+                    on  formatted.claim_id_ = debtor.cdn
 )
 , response_lines as
 (
