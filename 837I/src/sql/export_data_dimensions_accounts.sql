@@ -32,6 +32,7 @@ with filtered as
     where       case    when    debtor.pl_group = 'IU HEALTH - TPL'
                         then    case    when    debtor.client_idx = 'HH-2175NLIHB'
                                         and     dimdebtor.desk in ('I14')
+                                        and     debtor.status = 'PFS'
                                         then    TRUE
                                         else    FALSE
                                         end
