@@ -1,6 +1,22 @@
-create or replace view
-    edwprodhh.edi_837i_parser.export_data_dimensions
+create table
+    edwprodhh.edi_837i_parser.export_data_dimensions_log
+(
+    LINE_ELEMENT_837    VARCHAR(16777216),
+    INDEX               NUMBER(38,0),
+    PL_GROUP            VARCHAR(16777216),
+    CLAIM_ID            VARCHAR(16777216),
+    UPLOAD_DATE         DATE
+)
+;
+
+
+create or replace task
+    edwprodhh.edi_837i_parser.insert_export_data_dimensions_log
+    warehouse = analysis_wh
+    after edwprodhh.edi_837i_parser.insert_export_data_dimensions_accounts_log
 as
+insert into
+    edwprodhh.edi_837i_parser.export_data_dimensions_log
 with claims as
 (
     with formatted as
@@ -16,8 +32,9 @@ with claims as
                     claims.nth_transaction_set,
                     claims.index,
                     claims.claim_index,
-                    ltrim(claims.clm_ref_medical_record_num,    '0')    as mrn_,
-                    ltrim(claims.claim_id,                      '0')    as claim_id_
+                    ltrim(claims.clm_ref_medical_record_num, '0')                       as mrn_,
+                    regexp_substr(ltrim(claims.claim_id, '0'), '(\\d*$)', 1, 1, 'e')    as claim_id_
+                    
         from        edwprodhh.edi_837i_parser.claims as claims
                     inner join
                         file_dates
@@ -32,7 +49,7 @@ with claims as
     from        formatted
                 inner join
                     edwprodhh.edi_837i_parser.export_data_dimensions_accounts as debtor
-                    on  formatted.claim_id_ = debtor.cdn
+                    on formatted.claim_id_ = debtor.cdn
 )
 , response_lines as
 (
@@ -40,6 +57,7 @@ with claims as
                 response.index,
                 response.nth_transaction_set,
                 response.line_element_837 || '~' as line_element_837,
+                claims.claim_id_ as claim_id,
                 claims.pl_group
     from        edwprodhh.edi_837i_parser.response_flat as response
                 inner join
@@ -66,7 +84,8 @@ with claims as
     )
     select      header_lines.line_element_837,
                 header_lines.index,
-                pl_groups.pl_group
+                pl_groups.pl_group,
+                NULL as claim_id
     from        header_lines
                 cross join
                     pl_groups
@@ -75,15 +94,27 @@ with claims as
 (
     select      line_element_837,
                 index,
-                pl_group
+                pl_group,
+                claim_id
     from        response_lines
     union all
     select      line_element_837,
                 index,
-                pl_group
+                pl_group,
+                claim_id
     from        headers
 )
-select      *
+select      *,
+            current_date() as upload_date
 from        unioned
 order by    pl_group, index
+;
+
+
+create or replace view
+    edwprodhh.edi_837i_parser.export_data_dimensions
+as
+select      *
+from        edwprodhh.edi_837i_parser.export_data_dimensions_log
+where       upload_date = current_date()
 ;
