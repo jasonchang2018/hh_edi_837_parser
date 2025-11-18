@@ -23,7 +23,7 @@ cur = conn.cursor()
 results_list = cur.execute("select line_element_837, index, pl_group from edwprodhh.edi_837i_parser.export_data_dimensions").fetchall()
 
 if results_list:
-    
+
     ##  Convert to DF
     df = pd.DataFrame(results_list, columns = [desc[0] for desc in cur.description])
 
@@ -39,7 +39,7 @@ if results_list:
         ))
         
         filename = (
-            f"C:/Users/jchang/Desktop/Projects/edi-837-parser/837I/data/out/"
+            f"G:/Analytics_Team/PROD/DATA_DIMENSIONS/export/"
             f"export-837I-HB-{re.sub(r"[^\w]", "", value)}-{today_str}.837"
         )
 

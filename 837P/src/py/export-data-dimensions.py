@@ -39,7 +39,7 @@ if results_list:
         ))
         
         filename = (
-            f"C:/Users/jchang/Desktop/Projects/edi-837-parser/837P/data/out/"
+            f"G:/Analytics_Team/PROD/DATA_DIMENSIONS/export/"
             f"export-837P-PB-{re.sub(r"[^\w]", "", value)}-{today_str}.837"
         )
 
