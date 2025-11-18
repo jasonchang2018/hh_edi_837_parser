@@ -20,7 +20,7 @@ cur = conn.cursor()
 
 
 ##  Return Snowflake Results
-results_list = cur.execute("SELECT * FROM edwprodhh.edi_837p_parser.export_data_dimensions").fetchall()
+results_list = cur.execute("select line_element_837, index, pl_group from edwprodhh.edi_837p_parser.export_data_dimensions").fetchall()
 
 ##  Convert to DF
 df = pd.DataFrame(results_list, columns = [desc[0] for desc in cur.description])
