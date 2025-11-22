@@ -13,7 +13,7 @@ create table
 create or replace task
     edwprodhh.edi_837i_parser.insert_export_data_dimensions_accounts_log
     warehouse = analysis_wh
-    schedule = 'USING CRON 0 4 * * * America/Chicago'
+    schedule = 'USING CRON 0 4 * * MON-FRI America/Chicago'
 as
 insert into
     edwprodhh.edi_837i_parser.export_data_dimensions_accounts_log
