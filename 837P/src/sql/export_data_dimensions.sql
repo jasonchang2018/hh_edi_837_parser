@@ -73,7 +73,7 @@ with claims as
         select      'ISA*00*          *00*          *ZZ*' || rpad('580977458', 15, ' ') || '*ZZ*' || rpad('12345678', 15, ' ') || '*' || to_varchar(current_timestamp(), 'yymmdd*hh24mi') || '*^*00501*000000001*1*P*:~'    as line_element_837,
                     -2                                                                                                                                                                                                      as index
         union all
-        select      'GS*HC*580977458*12345678*' || to_varchar(current_timestamp(), 'yyyymmdd*hh24mi') || '*000000001*X*005010X223A2~'                                                                                       as line_element_837,
+        select      'GS*HC*580977458*12345678*' || to_varchar(current_timestamp(), 'yyyymmdd*hh24mi') || '*000000001*X*005010X222A1~'                                                                                       as line_element_837,
                     -1                                                                                                                                                                                                      as index
     )
     , pl_groups as
