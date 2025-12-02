@@ -2,9 +2,11 @@ create table
     edwprodhh.edi_837i_parser.export_data_dimensions_log
 (
     LINE_ELEMENT_837    VARCHAR(16777216),
+    RESPONSE_ID         VARCHAR(16777216),
     INDEX               NUMBER(38,0),
     PL_GROUP            VARCHAR(16777216),
     CLAIM_ID            VARCHAR(16777216),
+    FINAL_RN            NUMBER(18,0),
     UPLOAD_DATE         DATE
 )
 ;
@@ -93,21 +95,27 @@ with claims as
 , unioned as
 (
     select      line_element_837,
+                response_id,
                 index,
                 pl_group,
                 claim_id
     from        response_lines
     union all
     select      line_element_837,
+                NULL as response_id,
                 index,
                 pl_group,
                 claim_id
     from        headers
 )
 select      *,
-            current_date() as upload_date
+            row_number() over (order by     pl_group,
+                                            case when response_id is null then 1 else 2 end asc, --headers first
+                                            response_id,
+                                            index)                                                                  as final_rn,
+            current_date()                                                                                          as upload_date
 from        unioned
-order by    pl_group, index
+order by    final_rn
 ;
 
 

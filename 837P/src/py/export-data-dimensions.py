@@ -20,7 +20,7 @@ cur = conn.cursor()
 
 
 ##  Return Snowflake Results
-results_list = cur.execute("select line_element_837, index, pl_group from edwprodhh.edi_837p_parser.export_data_dimensions").fetchall()
+results_list = cur.execute("select line_element_837, final_rn, pl_group from edwprodhh.edi_837p_parser.export_data_dimensions").fetchall()
 
 if results_list:
 
