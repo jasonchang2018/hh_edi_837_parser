@@ -33,13 +33,14 @@ with filtered as
                         then    case    when    debtor.client_idx = 'HH-2175NLIHB'
                                         and     dimdebtor.desk in ('I14')
                                         and     debtor.status = 'PFS'
+                                        and     debtor.balance_dimdebtor >= 50
                                         then    TRUE
                                         else    FALSE
                                         end
                         else    FALSE
                         end
                 and cdn_ not in (select claim_id from edwprodhh.edi_837i_parser.export_data_dimensions_log where claim_id is not null)                      --if sent to vendor, never selected again
-                and cdn_ not in (select cdn from edwprodhh.edi_837i_parser.export_data_dimensions_accounts_log where upload_date >= current_date() - 14)    --if selected but not sent to vendor, try again after cooldown period
+                and cdn_ not in (select cdn from edwprodhh.edi_837i_parser.export_data_dimensions_accounts_log where upload_date >= current_date() - 7)     --if selected but not sent to vendor, try again after cooldown period
     limit       100
 )
 select      debtor_idx,
