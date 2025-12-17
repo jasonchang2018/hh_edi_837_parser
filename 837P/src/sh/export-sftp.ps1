@@ -6,5 +6,5 @@ sftp -P 522 `
 DBO6RS9pF18ouiW
 
 sftp> cd 837P/IN
-sftp> put J:\DATA DIMENSIONS\out\export-837P-PB-IUHEALTHTPL-20251118.837
+sftp> put "J:\DATA DIMENSIONS\out\export-837P-PB-IUHEALTHTPL-20251118.837"
 sftp> exit
