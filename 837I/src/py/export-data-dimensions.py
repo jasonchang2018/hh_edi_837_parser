@@ -39,7 +39,7 @@ if results_list:
         ))
         
         filename = (
-            f"G:/Analytics_Team/PROD/DATA_DIMENSIONS/export/"
+            f"J:/DATA DIMENSIONS/out"
             f"export-837I-HB-{re.sub(r"[^\w]", "", value)}-{today_str}.837"
         )
 
