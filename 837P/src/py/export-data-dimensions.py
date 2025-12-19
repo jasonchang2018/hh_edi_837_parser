@@ -7,7 +7,7 @@ today_str = datetime.now().strftime("%Y%m%d")
 
 
 ##  Read Snowflake Password
-with open("C:/Users/jchang/Desktop/Projects/edi-837-parser/837P/src/py/secrets.txt") as f:
+with open("C:/Users/jchang/Desktop/Projects/x12_edi_parser/837P/src/py/secrets.txt") as f:
     password = f.read().strip()
 
 conn = snowflake.connector.connect(
@@ -39,7 +39,7 @@ if results_list:
         ))
         
         filename = (
-            f"J:/DATA_DIMENSIONS/OUT"
+            f"J:/DATA_DIMENSIONS/OUT/"
             f"export-837P-PB-{re.sub(r"[^\w]", "", value)}-{today_str}.837"
         )
 
