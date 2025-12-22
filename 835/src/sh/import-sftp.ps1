@@ -6,5 +6,5 @@ sftp -P 522 `
 DBO6RS9pF18ouiW
 
 sftp> cd 837P/OUT
-sftp> get WCEDI_PAYOR_835_20251216104837_001.835 "J:/DATA_DIMENSIONS/IN/"
+sftp> get *.835 "J:/DATA_DIMENSIONS/IN/"
 sftp> exit
