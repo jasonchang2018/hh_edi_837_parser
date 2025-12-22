@@ -37,10 +37,10 @@ end
 
 
 
--- create or replace task
---     edwprodhh.edi_835_parser.sp_insert_835_from_stage
---     warehouse = analysis_wh
---     schedule = 'USING CRON 0 1 * * * America/Chicago'
--- as
--- call    edwprodhh.edi_835_parser.insert_835_from_stage(current_timestamp())
--- ;
+create or replace task
+    edwprodhh.edi_835_parser.sp_insert_835_from_stage
+    warehouse = analysis_wh
+    schedule = 'USING CRON 0 1 * * * America/Chicago'
+as
+call    edwprodhh.edi_835_parser.insert_835_from_stage(current_timestamp())
+;
