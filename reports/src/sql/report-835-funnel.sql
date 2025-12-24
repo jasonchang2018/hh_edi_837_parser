@@ -1,0 +1,124 @@
+with claims_837 as
+(
+    with claims as
+    (
+        with unioned as
+        (
+            select      distinct
+                        claim_id,
+                        upload_date
+            from        edwprodhh.edi_837p_parser.export_data_dimensions_log
+            union all
+            select      distinct
+                        claim_id,
+                        upload_date
+            from        edwprodhh.edi_837i_parser.export_data_dimensions_log
+        )
+        select      claim_id            as claim_id_format,
+                    min(upload_date)    as upload_date
+        from        unioned
+        group by    1
+    )
+    , map_claim_id as
+    (
+        with unioned_map as
+        (
+            select      line_element_837,
+            from        edwprodhh.edi_837p_parser.export_data_dimensions_log
+            where       left(line_element_837, 3) = 'CLM'
+            union all
+            select      line_element_837,
+            from        edwprodhh.edi_837i_parser.export_data_dimensions_log
+            where       left(line_element_837, 3) = 'CLM'
+        )
+        select      regexp_substr(line_element_837, 'CLM\\*([^\\*]*)', 1, 1, 'e')   as claim_id,
+                    regexp_substr(ltrim(claim_id, '0'), '(\\d*$)', 1, 1, 'e')       as claim_id_format,
+        from        unioned_map
+    )
+    select      claims.claim_id_format,
+                claims.upload_date,
+                map_claim_id.claim_id,
+                -- coalesce(claims_i.total_claim_charge, claims_p.total_claim_charge)::number(18,2) as total_claim_charge
+    from        claims
+                inner join
+                    map_claim_id
+                    on claims.claim_id_format = map_claim_id.claim_id_format
+                -- left join
+                --     edwprodhh.edi_837i_parser.claims as claims_i
+                --     on map_claim_id.claim_id = claims_i.claim_id
+                -- left join
+                --     edwprodhh.edi_837p_parser.claims as claims_p
+                --     on map_claim_id.claim_id = claims_p.claim_id
+)
+, remits_835 as
+(
+    select      clp_claim_id                                                    as claim_id,
+                regexp_substr(ltrim(clp_claim_id, '0'), '(\\d*$)', 1, 1, 'e')   as claim_id_format,
+                clp_claim_status_code                                           as claim_status_code,
+                clp_claim_charge_amount::number(18,2)                           as claim_charge_amount,
+                clp_claim_payment_amount::number(18,2)                          as claim_payment_amount,
+                clp_claim_patient_resp_amount::number(18,2)                     as claim_patient_resp_amount,
+                clp_claim_filing_indicator_code                                 as claim_filing_indicator_code,
+                clp_claim_payer_control_num                                     as claim_payer_control_num,
+                dtm_232_date,
+                dtm_233_date,
+                dtm_050_date
+    from        edwprodhh.edi_835_parser.remits
+)
+, posted_cubs as
+(
+    select      remits.claim_id,
+                /*Inflates match when multiple payments of same amount. 
+                  Assumes cubs posts at claim level and not at service line level.*/
+                max(case when trans.trans_idx is not null then 1 else 0 end) as is_posted_cubs_
+    from        remits_835 as remits
+                left join
+                    edwprodhh.pub_jchang.master_debtor as debtor
+                    on remits.claim_id_format = debtor.client_debtornumber
+                    and debtor.pl_group in (
+                        'IU HEALTH - TPL'
+                    )
+                left join
+                    edwprodhh.pub_jchang.master_transactions as trans
+                    on  debtor.debtor_idx = trans.debtor_idx
+                    and trans.is_payment = 1
+                    and remits.claim_payment_amount = trans.sig_trans_amt
+    group by    1
+    order by    1
+)
+, joined as
+(
+    select      claims_837.*,
+
+                1                                                               as is_submit_837,
+                case when remits_835.claim_id is not null then 1 else 0 end     as is_remit_835,
+                coalesce(posted_cubs.is_posted_cubs_, 0)                        as is_posted_cubs,
+
+                remits_835.claim_charge_amount,
+                remits_835.claim_payment_amount,
+                remits_835.claim_patient_resp_amount
+
+
+    from        claims_837
+                left join
+                    remits_835
+                    on claims_837.claim_id = remits_835.claim_id
+                left join
+                    posted_cubs
+                    on claims_837.claim_id = posted_cubs.claim_id
+                    
+    order by    1
+)
+select      upload_date,
+
+            sum(is_submit_837)      as n_submit_837,
+            sum(is_remit_835)       as n_remit_835,
+            sum(is_posted_cubs)     as n_posted_cubs,
+
+            avg(case when is_submit_837 = 1 then is_remit_835   end) as p_remit_835,
+            avg(case when is_remit_835  = 1 then is_posted_cubs end) as p_posted_cubs
+
+from        joined
+group by    1
+order by    1
+;
