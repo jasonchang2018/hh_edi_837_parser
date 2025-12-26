@@ -358,7 +358,7 @@ from        header_st
 
 
 create or replace task
-    edwprodhh.edi_277_parser.insert_transaction_sets
+    edwprodhh.edi_277_parser.insert_hl_20_payer
     warehouse = analysis_wh
     after edwprodhh.edi_277_parser.insert_response_flat
 as
