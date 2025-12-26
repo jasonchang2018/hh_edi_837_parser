@@ -68,16 +68,16 @@ with filtered as
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
 
-                    case    when    flattened.index = 1   then      'NM1_41_PATIENT_NAME_CODE'
-                            when    flattened.index = 2   then      'NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE'
-                            when    flattened.index = 3   then      'NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER'
-                            when    flattened.index = 4   then      'NM1_41_PATIENT_LAST_NAME_ORG'
-                            when    flattened.index = 5   then      'NM1_41_PATIENT_FIRST_NAME'
-                            when    flattened.index = 6   then      'NM1_41_PATIENT_MIDDLE_NAME'
-                            when    flattened.index = 7   then      'NM1_41_PATIENT_NAME_PREFIX'
-                            when    flattened.index = 8   then      'NM1_41_PATIENT_NAME_SUFFIX'
-                            when    flattened.index = 9   then      'NM1_41_PATIENT_ID_CODE_QUALIFIER'
-                            when    flattened.index = 10  then      'NM1_41_PATIENT_ID_CODE'
+                    case    when    flattened.index = 1   then      'NM1_41_PROVIDER_NAME_CODE'
+                            when    flattened.index = 2   then      'NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE'
+                            when    flattened.index = 3   then      'NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER'
+                            when    flattened.index = 4   then      'NM1_41_PROVIDER_LAST_NAME_ORG'
+                            when    flattened.index = 5   then      'NM1_41_PROVIDER_FIRST_NAME'
+                            when    flattened.index = 6   then      'NM1_41_PROVIDER_MIDDLE_NAME'
+                            when    flattened.index = 7   then      'NM1_41_PROVIDER_NAME_PREFIX'
+                            when    flattened.index = 8   then      'NM1_41_PROVIDER_NAME_SUFFIX'
+                            when    flattened.index = 9   then      'NM1_41_PROVIDER_ID_CODE_QUALIFIER'
+                            when    flattened.index = 10  then      'NM1_41_PROVIDER_ID_CODE'
                             end     as value_header,
 
                     nullif(trim(flattened.value), '') as value_format
@@ -91,32 +91,32 @@ with filtered as
     from        long
                 pivot(
                     max(value_format) for value_header in (
-                        'NM1_41_PATIENT_NAME_CODE',
-                        'NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE',
-                        'NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER',
-                        'NM1_41_PATIENT_LAST_NAME_ORG',
-                        'NM1_41_PATIENT_FIRST_NAME',
-                        'NM1_41_PATIENT_MIDDLE_NAME',
-                        'NM1_41_PATIENT_NAME_PREFIX',
-                        'NM1_41_PATIENT_NAME_SUFFIX',
-                        'NM1_41_PATIENT_ID_CODE_QUALIFIER',
-                        'NM1_41_PATIENT_ID_CODE'
+                        'NM1_41_PROVIDER_NAME_CODE',
+                        'NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE',
+                        'NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER',
+                        'NM1_41_PROVIDER_LAST_NAME_ORG',
+                        'NM1_41_PROVIDER_FIRST_NAME',
+                        'NM1_41_PROVIDER_MIDDLE_NAME',
+                        'NM1_41_PROVIDER_NAME_PREFIX',
+                        'NM1_41_PROVIDER_NAME_SUFFIX',
+                        'NM1_41_PROVIDER_ID_CODE_QUALIFIER',
+                        'NM1_41_PROVIDER_ID_CODE'
                     )
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
                     NTH_TRANSACTION_SET,
                     HL_INDEX,
-                    NM1_41_PATIENT_NAME_CODE,
-                    NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE,
-                    NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER,
-                    NM1_41_PATIENT_LAST_NAME_ORG,
-                    NM1_41_PATIENT_FIRST_NAME,
-                    NM1_41_PATIENT_MIDDLE_NAME,
-                    NM1_41_PATIENT_NAME_PREFIX,
-                    NM1_41_PATIENT_NAME_SUFFIX,
-                    NM1_41_PATIENT_ID_CODE_QUALIFIER,
-                    NM1_41_PATIENT_ID_CODE
+                    NM1_41_PROVIDER_NAME_CODE,
+                    NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE,
+                    NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER,
+                    NM1_41_PROVIDER_LAST_NAME_ORG,
+                    NM1_41_PROVIDER_FIRST_NAME,
+                    NM1_41_PROVIDER_MIDDLE_NAME,
+                    NM1_41_PROVIDER_NAME_PREFIX,
+                    NM1_41_PROVIDER_NAME_SUFFIX,
+                    NM1_41_PROVIDER_ID_CODE_QUALIFIER,
+                    NM1_41_PROVIDER_ID_CODE
                 )
 )
 , trn as
@@ -239,16 +239,16 @@ select      hl.response_id,
             hl.hl_21_parent_id,
             hl.hl_21_level_code,
             hl.hl_21_child_code,
-            nm1_41.nm1_41_patient_name_code,
-            nm1_41.nm1_41_patient_entity_identifier_code,
-            nm1_41.nm1_41_patient_entity_type_qualifier,
-            nm1_41.nm1_41_patient_last_name_org,
-            nm1_41.nm1_41_patient_first_name,
-            nm1_41.nm1_41_patient_middle_name,
-            nm1_41.nm1_41_patient_name_prefix,
-            nm1_41.nm1_41_patient_name_suffix,
-            nm1_41.nm1_41_patient_id_code_qualifier,
-            nm1_41.nm1_41_patient_id_code,
+            nm1_41.nm1_41_provider_name_code,
+            nm1_41.nm1_41_provider_entity_identifier_code,
+            nm1_41.nm1_41_provider_entity_type_qualifier,
+            nm1_41.nm1_41_provider_last_name_org,
+            nm1_41.nm1_41_provider_first_name,
+            nm1_41.nm1_41_provider_middle_name,
+            nm1_41.nm1_41_provider_name_prefix,
+            nm1_41.nm1_41_provider_name_suffix,
+            nm1_41.nm1_41_provider_id_code_qualifier,
+            nm1_41.nm1_41_provider_id_code,
             trn.trn_prefix,
             trn.trn_trace_type,
             trn.trn_trace_id,
@@ -303,16 +303,16 @@ insert into
     HL_21_PARENT_ID,
     HL_21_LEVEL_CODE,
     HL_21_CHILD_CODE,
-    NM1_41_PATIENT_NAME_CODE,
-    NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE,
-    NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER,
-    NM1_41_PATIENT_LAST_NAME_ORG,
-    NM1_41_PATIENT_FIRST_NAME,
-    NM1_41_PATIENT_MIDDLE_NAME,
-    NM1_41_PATIENT_NAME_PREFIX,
-    NM1_41_PATIENT_NAME_SUFFIX,
-    NM1_41_PATIENT_ID_CODE_QUALIFIER,
-    NM1_41_PATIENT_ID_CODE,
+    NM1_41_PROVIDER_NAME_CODE,
+    NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE,
+    NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER,
+    NM1_41_PROVIDER_LAST_NAME_ORG,
+    NM1_41_PROVIDER_FIRST_NAME,
+    NM1_41_PROVIDER_MIDDLE_NAME,
+    NM1_41_PROVIDER_NAME_PREFIX,
+    NM1_41_PROVIDER_NAME_SUFFIX,
+    NM1_41_PROVIDER_ID_CODE_QUALIFIER,
+    NM1_41_PROVIDER_ID_CODE,
     TRN_PREFIX,
     TRN_TRACE_TYPE,
     TRN_TRACE_ID,
@@ -396,16 +396,16 @@ with filtered as
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
 
-                    case    when    flattened.index = 1   then      'NM1_41_PATIENT_NAME_CODE'
-                            when    flattened.index = 2   then      'NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE'
-                            when    flattened.index = 3   then      'NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER'
-                            when    flattened.index = 4   then      'NM1_41_PATIENT_LAST_NAME_ORG'
-                            when    flattened.index = 5   then      'NM1_41_PATIENT_FIRST_NAME'
-                            when    flattened.index = 6   then      'NM1_41_PATIENT_MIDDLE_NAME'
-                            when    flattened.index = 7   then      'NM1_41_PATIENT_NAME_PREFIX'
-                            when    flattened.index = 8   then      'NM1_41_PATIENT_NAME_SUFFIX'
-                            when    flattened.index = 9   then      'NM1_41_PATIENT_ID_CODE_QUALIFIER'
-                            when    flattened.index = 10  then      'NM1_41_PATIENT_ID_CODE'
+                    case    when    flattened.index = 1   then      'NM1_41_PROVIDER_NAME_CODE'
+                            when    flattened.index = 2   then      'NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE'
+                            when    flattened.index = 3   then      'NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER'
+                            when    flattened.index = 4   then      'NM1_41_PROVIDER_LAST_NAME_ORG'
+                            when    flattened.index = 5   then      'NM1_41_PROVIDER_FIRST_NAME'
+                            when    flattened.index = 6   then      'NM1_41_PROVIDER_MIDDLE_NAME'
+                            when    flattened.index = 7   then      'NM1_41_PROVIDER_NAME_PREFIX'
+                            when    flattened.index = 8   then      'NM1_41_PROVIDER_NAME_SUFFIX'
+                            when    flattened.index = 9   then      'NM1_41_PROVIDER_ID_CODE_QUALIFIER'
+                            when    flattened.index = 10  then      'NM1_41_PROVIDER_ID_CODE'
                             end     as value_header,
 
                     nullif(trim(flattened.value), '') as value_format
@@ -419,32 +419,32 @@ with filtered as
     from        long
                 pivot(
                     max(value_format) for value_header in (
-                        'NM1_41_PATIENT_NAME_CODE',
-                        'NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE',
-                        'NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER',
-                        'NM1_41_PATIENT_LAST_NAME_ORG',
-                        'NM1_41_PATIENT_FIRST_NAME',
-                        'NM1_41_PATIENT_MIDDLE_NAME',
-                        'NM1_41_PATIENT_NAME_PREFIX',
-                        'NM1_41_PATIENT_NAME_SUFFIX',
-                        'NM1_41_PATIENT_ID_CODE_QUALIFIER',
-                        'NM1_41_PATIENT_ID_CODE'
+                        'NM1_41_PROVIDER_NAME_CODE',
+                        'NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE',
+                        'NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER',
+                        'NM1_41_PROVIDER_LAST_NAME_ORG',
+                        'NM1_41_PROVIDER_FIRST_NAME',
+                        'NM1_41_PROVIDER_MIDDLE_NAME',
+                        'NM1_41_PROVIDER_NAME_PREFIX',
+                        'NM1_41_PROVIDER_NAME_SUFFIX',
+                        'NM1_41_PROVIDER_ID_CODE_QUALIFIER',
+                        'NM1_41_PROVIDER_ID_CODE'
                     )
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
                     NTH_TRANSACTION_SET,
                     HL_INDEX,
-                    NM1_41_PATIENT_NAME_CODE,
-                    NM1_41_PATIENT_ENTITY_IDENTIFIER_CODE,
-                    NM1_41_PATIENT_ENTITY_TYPE_QUALIFIER,
-                    NM1_41_PATIENT_LAST_NAME_ORG,
-                    NM1_41_PATIENT_FIRST_NAME,
-                    NM1_41_PATIENT_MIDDLE_NAME,
-                    NM1_41_PATIENT_NAME_PREFIX,
-                    NM1_41_PATIENT_NAME_SUFFIX,
-                    NM1_41_PATIENT_ID_CODE_QUALIFIER,
-                    NM1_41_PATIENT_ID_CODE
+                    NM1_41_PROVIDER_NAME_CODE,
+                    NM1_41_PROVIDER_ENTITY_IDENTIFIER_CODE,
+                    NM1_41_PROVIDER_ENTITY_TYPE_QUALIFIER,
+                    NM1_41_PROVIDER_LAST_NAME_ORG,
+                    NM1_41_PROVIDER_FIRST_NAME,
+                    NM1_41_PROVIDER_MIDDLE_NAME,
+                    NM1_41_PROVIDER_NAME_PREFIX,
+                    NM1_41_PROVIDER_NAME_SUFFIX,
+                    NM1_41_PROVIDER_ID_CODE_QUALIFIER,
+                    NM1_41_PROVIDER_ID_CODE
                 )
 )
 , trn as
@@ -567,16 +567,16 @@ select      hl.response_id,
             hl.hl_21_parent_id,
             hl.hl_21_level_code,
             hl.hl_21_child_code,
-            nm1_41.nm1_41_patient_name_code,
-            nm1_41.nm1_41_patient_entity_identifier_code,
-            nm1_41.nm1_41_patient_entity_type_qualifier,
-            nm1_41.nm1_41_patient_last_name_org,
-            nm1_41.nm1_41_patient_first_name,
-            nm1_41.nm1_41_patient_middle_name,
-            nm1_41.nm1_41_patient_name_prefix,
-            nm1_41.nm1_41_patient_name_suffix,
-            nm1_41.nm1_41_patient_id_code_qualifier,
-            nm1_41.nm1_41_patient_id_code,
+            nm1_41.nm1_41_provider_name_code,
+            nm1_41.nm1_41_provider_entity_identifier_code,
+            nm1_41.nm1_41_provider_entity_type_qualifier,
+            nm1_41.nm1_41_provider_last_name_org,
+            nm1_41.nm1_41_provider_first_name,
+            nm1_41.nm1_41_provider_middle_name,
+            nm1_41.nm1_41_provider_name_prefix,
+            nm1_41.nm1_41_provider_name_suffix,
+            nm1_41.nm1_41_provider_id_code_qualifier,
+            nm1_41.nm1_41_provider_id_code,
             trn.trn_prefix,
             trn.trn_trace_type,
             trn.trn_trace_id,

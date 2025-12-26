@@ -68,16 +68,16 @@ with filtered as
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
 
-                    case    when    flattened.index = 1   then      'NM1_85_PATIENT_NAME_CODE'
-                            when    flattened.index = 2   then      'NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE'
-                            when    flattened.index = 3   then      'NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER'
-                            when    flattened.index = 4   then      'NM1_85_PATIENT_LAST_NAME_ORG'
-                            when    flattened.index = 5   then      'NM1_85_PATIENT_FIRST_NAME'
-                            when    flattened.index = 6   then      'NM1_85_PATIENT_MIDDLE_NAME'
-                            when    flattened.index = 7   then      'NM1_85_PATIENT_NAME_PREFIX'
-                            when    flattened.index = 8   then      'NM1_85_PATIENT_NAME_SUFFIX'
-                            when    flattened.index = 9   then      'NM1_85_PATIENT_ID_CODE_QUALIFIER'
-                            when    flattened.index = 10  then      'NM1_85_PATIENT_ID_CODE'
+                    case    when    flattened.index = 1   then      'NM1_85_SUBSCRIBER_NAME_CODE'
+                            when    flattened.index = 2   then      'NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE'
+                            when    flattened.index = 3   then      'NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER'
+                            when    flattened.index = 4   then      'NM1_85_SUBSCRIBER_LAST_NAME_ORG'
+                            when    flattened.index = 5   then      'NM1_85_SUBSCRIBER_FIRST_NAME'
+                            when    flattened.index = 6   then      'NM1_85_SUBSCRIBER_MIDDLE_NAME'
+                            when    flattened.index = 7   then      'NM1_85_SUBSCRIBER_NAME_PREFIX'
+                            when    flattened.index = 8   then      'NM1_85_SUBSCRIBER_NAME_SUFFIX'
+                            when    flattened.index = 9   then      'NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER'
+                            when    flattened.index = 10  then      'NM1_85_SUBSCRIBER_ID_CODE'
                             end     as value_header,
 
                     nullif(trim(flattened.value), '') as value_format
@@ -91,32 +91,32 @@ with filtered as
     from        long
                 pivot(
                     max(value_format) for value_header in (
-                        'NM1_85_PATIENT_NAME_CODE',
-                        'NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE',
-                        'NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER',
-                        'NM1_85_PATIENT_LAST_NAME_ORG',
-                        'NM1_85_PATIENT_FIRST_NAME',
-                        'NM1_85_PATIENT_MIDDLE_NAME',
-                        'NM1_85_PATIENT_NAME_PREFIX',
-                        'NM1_85_PATIENT_NAME_SUFFIX',
-                        'NM1_85_PATIENT_ID_CODE_QUALIFIER',
-                        'NM1_85_PATIENT_ID_CODE'
+                        'NM1_85_SUBSCRIBER_NAME_CODE',
+                        'NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE',
+                        'NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER',
+                        'NM1_85_SUBSCRIBER_LAST_NAME_ORG',
+                        'NM1_85_SUBSCRIBER_FIRST_NAME',
+                        'NM1_85_SUBSCRIBER_MIDDLE_NAME',
+                        'NM1_85_SUBSCRIBER_NAME_PREFIX',
+                        'NM1_85_SUBSCRIBER_NAME_SUFFIX',
+                        'NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER',
+                        'NM1_85_SUBSCRIBER_ID_CODE'
                     )
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
                     NTH_TRANSACTION_SET,
                     HL_INDEX,
-                    NM1_85_PATIENT_NAME_CODE,
-                    NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE,
-                    NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER,
-                    NM1_85_PATIENT_LAST_NAME_ORG,
-                    NM1_85_PATIENT_FIRST_NAME,
-                    NM1_85_PATIENT_MIDDLE_NAME,
-                    NM1_85_PATIENT_NAME_PREFIX,
-                    NM1_85_PATIENT_NAME_SUFFIX,
-                    NM1_85_PATIENT_ID_CODE_QUALIFIER,
-                    NM1_85_PATIENT_ID_CODE
+                    NM1_85_SUBSCRIBER_NAME_CODE,
+                    NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE,
+                    NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER,
+                    NM1_85_SUBSCRIBER_LAST_NAME_ORG,
+                    NM1_85_SUBSCRIBER_FIRST_NAME,
+                    NM1_85_SUBSCRIBER_MIDDLE_NAME,
+                    NM1_85_SUBSCRIBER_NAME_PREFIX,
+                    NM1_85_SUBSCRIBER_NAME_SUFFIX,
+                    NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER,
+                    NM1_85_SUBSCRIBER_ID_CODE
                 )
 )
 select      hl.response_id,
@@ -128,16 +128,16 @@ select      hl.response_id,
             hl.hl_19_parent_id,
             hl.hl_19_level_code,
             hl.hl_19_child_code,
-            nm1_85.nm1_85_patient_name_code,
-            nm1_85.nm1_85_patient_entity_identifier_code,
-            nm1_85.nm1_85_patient_entity_type_qualifier,
-            nm1_85.nm1_85_patient_last_name_org,
-            nm1_85.nm1_85_patient_first_name,
-            nm1_85.nm1_85_patient_middle_name,
-            nm1_85.nm1_85_patient_name_prefix,
-            nm1_85.nm1_85_patient_name_suffix,
-            nm1_85.nm1_85_patient_id_code_qualifier,
-            nm1_85.nm1_85_patient_id_code
+            nm1_85.nm1_85_subscriber_name_code,
+            nm1_85.nm1_85_subscriber_entity_identifier_code,
+            nm1_85.nm1_85_subscriber_entity_type_qualifier,
+            nm1_85.nm1_85_subscriber_last_name_org,
+            nm1_85.nm1_85_subscriber_first_name,
+            nm1_85.nm1_85_subscriber_middle_name,
+            nm1_85.nm1_85_subscriber_name_prefix,
+            nm1_85.nm1_85_subscriber_name_suffix,
+            nm1_85.nm1_85_subscriber_id_code_qualifier,
+            nm1_85.nm1_85_subscriber_id_code
 from        hl
             left join
                 nm1_85
@@ -166,16 +166,16 @@ insert into
     HL_19_PARENT_ID,
     HL_19_LEVEL_CODE,
     HL_19_CHILD_CODE,
-    NM1_85_PATIENT_NAME_CODE,
-    NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE,
-    NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER,
-    NM1_85_PATIENT_LAST_NAME_ORG,
-    NM1_85_PATIENT_FIRST_NAME,
-    NM1_85_PATIENT_MIDDLE_NAME,
-    NM1_85_PATIENT_NAME_PREFIX,
-    NM1_85_PATIENT_NAME_SUFFIX,
-    NM1_85_PATIENT_ID_CODE_QUALIFIER,
-    NM1_85_PATIENT_ID_CODE
+    NM1_85_SUBSCRIBER_NAME_CODE,
+    NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE,
+    NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER,
+    NM1_85_SUBSCRIBER_LAST_NAME_ORG,
+    NM1_85_SUBSCRIBER_FIRST_NAME,
+    NM1_85_SUBSCRIBER_MIDDLE_NAME,
+    NM1_85_SUBSCRIBER_NAME_PREFIX,
+    NM1_85_SUBSCRIBER_NAME_SUFFIX,
+    NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER,
+    NM1_85_SUBSCRIBER_ID_CODE
 )
 with filtered as
 (
@@ -245,16 +245,16 @@ with filtered as
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
 
-                    case    when    flattened.index = 1   then      'NM1_85_PATIENT_NAME_CODE'
-                            when    flattened.index = 2   then      'NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE'
-                            when    flattened.index = 3   then      'NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER'
-                            when    flattened.index = 4   then      'NM1_85_PATIENT_LAST_NAME_ORG'
-                            when    flattened.index = 5   then      'NM1_85_PATIENT_FIRST_NAME'
-                            when    flattened.index = 6   then      'NM1_85_PATIENT_MIDDLE_NAME'
-                            when    flattened.index = 7   then      'NM1_85_PATIENT_NAME_PREFIX'
-                            when    flattened.index = 8   then      'NM1_85_PATIENT_NAME_SUFFIX'
-                            when    flattened.index = 9   then      'NM1_85_PATIENT_ID_CODE_QUALIFIER'
-                            when    flattened.index = 10  then      'NM1_85_PATIENT_ID_CODE'
+                    case    when    flattened.index = 1   then      'NM1_85_SUBSCRIBER_NAME_CODE'
+                            when    flattened.index = 2   then      'NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE'
+                            when    flattened.index = 3   then      'NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER'
+                            when    flattened.index = 4   then      'NM1_85_SUBSCRIBER_LAST_NAME_ORG'
+                            when    flattened.index = 5   then      'NM1_85_SUBSCRIBER_FIRST_NAME'
+                            when    flattened.index = 6   then      'NM1_85_SUBSCRIBER_MIDDLE_NAME'
+                            when    flattened.index = 7   then      'NM1_85_SUBSCRIBER_NAME_PREFIX'
+                            when    flattened.index = 8   then      'NM1_85_SUBSCRIBER_NAME_SUFFIX'
+                            when    flattened.index = 9   then      'NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER'
+                            when    flattened.index = 10  then      'NM1_85_SUBSCRIBER_ID_CODE'
                             end     as value_header,
 
                     nullif(trim(flattened.value), '') as value_format
@@ -268,32 +268,32 @@ with filtered as
     from        long
                 pivot(
                     max(value_format) for value_header in (
-                        'NM1_85_PATIENT_NAME_CODE',
-                        'NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE',
-                        'NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER',
-                        'NM1_85_PATIENT_LAST_NAME_ORG',
-                        'NM1_85_PATIENT_FIRST_NAME',
-                        'NM1_85_PATIENT_MIDDLE_NAME',
-                        'NM1_85_PATIENT_NAME_PREFIX',
-                        'NM1_85_PATIENT_NAME_SUFFIX',
-                        'NM1_85_PATIENT_ID_CODE_QUALIFIER',
-                        'NM1_85_PATIENT_ID_CODE'
+                        'NM1_85_SUBSCRIBER_NAME_CODE',
+                        'NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE',
+                        'NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER',
+                        'NM1_85_SUBSCRIBER_LAST_NAME_ORG',
+                        'NM1_85_SUBSCRIBER_FIRST_NAME',
+                        'NM1_85_SUBSCRIBER_MIDDLE_NAME',
+                        'NM1_85_SUBSCRIBER_NAME_PREFIX',
+                        'NM1_85_SUBSCRIBER_NAME_SUFFIX',
+                        'NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER',
+                        'NM1_85_SUBSCRIBER_ID_CODE'
                     )
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
                     NTH_TRANSACTION_SET,
                     HL_INDEX,
-                    NM1_85_PATIENT_NAME_CODE,
-                    NM1_85_PATIENT_ENTITY_IDENTIFIER_CODE,
-                    NM1_85_PATIENT_ENTITY_TYPE_QUALIFIER,
-                    NM1_85_PATIENT_LAST_NAME_ORG,
-                    NM1_85_PATIENT_FIRST_NAME,
-                    NM1_85_PATIENT_MIDDLE_NAME,
-                    NM1_85_PATIENT_NAME_PREFIX,
-                    NM1_85_PATIENT_NAME_SUFFIX,
-                    NM1_85_PATIENT_ID_CODE_QUALIFIER,
-                    NM1_85_PATIENT_ID_CODE
+                    NM1_85_SUBSCRIBER_NAME_CODE,
+                    NM1_85_SUBSCRIBER_ENTITY_IDENTIFIER_CODE,
+                    NM1_85_SUBSCRIBER_ENTITY_TYPE_QUALIFIER,
+                    NM1_85_SUBSCRIBER_LAST_NAME_ORG,
+                    NM1_85_SUBSCRIBER_FIRST_NAME,
+                    NM1_85_SUBSCRIBER_MIDDLE_NAME,
+                    NM1_85_SUBSCRIBER_NAME_PREFIX,
+                    NM1_85_SUBSCRIBER_NAME_SUFFIX,
+                    NM1_85_SUBSCRIBER_ID_CODE_QUALIFIER,
+                    NM1_85_SUBSCRIBER_ID_CODE
                 )
 )
 select      hl.response_id,
@@ -305,16 +305,16 @@ select      hl.response_id,
             hl.hl_19_parent_id,
             hl.hl_19_level_code,
             hl.hl_19_child_code,
-            nm1_85.nm1_85_patient_name_code,
-            nm1_85.nm1_85_patient_entity_identifier_code,
-            nm1_85.nm1_85_patient_entity_type_qualifier,
-            nm1_85.nm1_85_patient_last_name_org,
-            nm1_85.nm1_85_patient_first_name,
-            nm1_85.nm1_85_patient_middle_name,
-            nm1_85.nm1_85_patient_name_prefix,
-            nm1_85.nm1_85_patient_name_suffix,
-            nm1_85.nm1_85_patient_id_code_qualifier,
-            nm1_85.nm1_85_patient_id_code
+            nm1_85.nm1_85_subscriber_name_code,
+            nm1_85.nm1_85_subscriber_entity_identifier_code,
+            nm1_85.nm1_85_subscriber_entity_type_qualifier,
+            nm1_85.nm1_85_subscriber_last_name_org,
+            nm1_85.nm1_85_subscriber_first_name,
+            nm1_85.nm1_85_subscriber_middle_name,
+            nm1_85.nm1_85_subscriber_name_prefix,
+            nm1_85.nm1_85_subscriber_name_suffix,
+            nm1_85.nm1_85_subscriber_id_code_qualifier,
+            nm1_85.nm1_85_subscriber_id_code
 from        hl
             left join
                 nm1_85
