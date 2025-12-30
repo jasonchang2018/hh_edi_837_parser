@@ -50,6 +50,22 @@ with claims_837 as
                 --     edwprodhh.edi_837p_parser.claims as claims_p
                 --     on map_claim_id.claim_id = claims_p.claim_id
 )
+, status_277 as
+(
+    select      trn_trace_id                                                                                        as claim_id,
+                regexp_substr(stc_status_category_code, '(^[^\\:]*)')                                               as status_category,
+                regexp_substr(regexp_replace(stc_status_category_code, status_category || '\\:'), '(^[^\\:]*)')     as status_code,
+                stc_date                                                                                            as status_date,
+                case    when    status_category in ('A0', 'A1', 'A2', 'R4')
+                        then    1
+                        else    0
+                        end                                                                                         as is_accepted
+                -- stc_status_category_code,
+                -- stc_action_code,
+                -- stc_monetary_amount
+    from        edwprodhh.edi_277_parser.hl_pt_patient
+    qualify     row_number() over (partition by claim_id order by stc_date desc, is_accepted desc) = 1
+)
 , remits_835 as
 (
     select      clp_claim_id                                                    as claim_id,
@@ -90,9 +106,13 @@ with claims_837 as
 (
     select      claims_837.*,
 
-                1                                                               as is_submit_837,
-                case when remits_835.claim_id is not null then 1 else 0 end     as is_remit_835,
-                coalesce(posted_cubs.is_posted_cubs_, 0)                        as is_posted_cubs,
+                1                                                                                           as is_submit_837,
+                case when status_277.claim_id is not null then 1 else 0 end                                 as is_response_277,
+                coalesce(status_277.is_accepted, 0)                                                         as is_accepted_277,
+                case when remits_835.claim_id is not null then 1 else 0 end                                 as is_remit_835,
+                case when coalesce(remits_835.claim_status_code, '0') in ('1', '2', '3') then 1 else 0 end  as is_processed_835,
+                case when remits_835.claim_payment_amount > 0 then 1 else 0 end                             as is_paid_835,
+                coalesce(posted_cubs.is_posted_cubs_, 0)                                                    as is_posted_cubs,
 
                 remits_835.claim_charge_amount,
                 remits_835.claim_payment_amount,
@@ -100,6 +120,9 @@ with claims_837 as
 
 
     from        claims_837
+                left join
+                    status_277
+                    on claims_837.claim_id = status_277.claim_id
                 left join
                     remits_835
                     on claims_837.claim_id = remits_835.claim_id
@@ -111,12 +134,20 @@ with claims_837 as
 )
 select      upload_date,
 
-            sum(is_submit_837)      as n_submit_837,
-            sum(is_remit_835)       as n_remit_835,
-            sum(is_posted_cubs)     as n_posted_cubs,
+            sum(is_submit_837)                                                  as n_submit_837,
+            sum(is_response_277)                                                as n_response_277,
+            sum(is_accepted_277)                                                as n_accepted_277,
+            sum(is_remit_835)                                                   as n_remit_835,
+            sum(is_processed_835)                                               as n_processed_835,
+            sum(is_paid_835)                                                    as n_paid_835,
+            sum(is_posted_cubs)                                                 as n_posted_cubs,
 
-            avg(case when is_submit_837 = 1 then is_remit_835   end) as p_remit_835,
-            avg(case when is_remit_835  = 1 then is_posted_cubs end) as p_posted_cubs
+            avg(case when is_submit_837     = 1 then is_response_277    end)    as p_response_277,
+            avg(case when is_response_277   = 1 then is_accepted_277    end)    as p_accepted_277,
+            avg(case when is_accepted_277   = 1 then is_remit_835       end)    as p_remit_835,
+            avg(case when is_remit_835      = 1 then is_processed_835   end)    as p_processed_835,
+            avg(case when is_processed_835  = 1 then is_paid_835        end)    as p_paid_835,
+            avg(case when is_paid_835       = 1 then is_posted_cubs     end)    as p_posted_cubs
 
 from        joined
 group by    1
