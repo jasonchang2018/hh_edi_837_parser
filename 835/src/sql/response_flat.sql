@@ -4,9 +4,12 @@ as
 with flattened as
 (
     select      response_id,
-                to_date(regexp_substr(file_name, '835_(\\d{8})', 1, 1, 'e'), 'yyyymmdd')    as file_date,
-                line_number                                                                 as index,
-                trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', ''))   as line_element_835
+                to_date(regexp_substr(file_name, '835_(\\d{8})', 1, 1, 'e'), 'yyyymmdd')                    as file_date,
+                line_number                                                                                 as index,
+                case    when    regexp_like(response_body, '^(ISA|GS)\\*.*')
+                        then    response_body
+                        else    trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', ''))
+                        end                                                                                 as line_element_835
     from        edwprodhh.edi_835_parser.response
 )
 , add_functional_group_index as
@@ -93,9 +96,12 @@ insert into
 with flattened as
 (
     select      response_id,
-                to_date(regexp_substr(file_name, '835_(\\d{8})', 1, 1, 'e'), 'yyyymmdd')    as file_date,
-                line_number                                                                 as index,
-                trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', ''))   as line_element_835
+                to_date(regexp_substr(file_name, '835_(\\d{8})', 1, 1, 'e'), 'yyyymmdd')                    as file_date,
+                line_number                                                                                 as index,
+                case    when    regexp_like(response_body, '^(ISA|GS)\\*.*')
+                        then    response_body
+                        else    trim(regexp_replace(regexp_replace(response_body, '\\s+', ' '), '~', ''))
+                        end                                                                                 as line_element_835
     from        edwprodhh.edi_835_parser.response
     where       response_id not in (select response_id from edwprodhh.edi_835_parser.response_flat)
 )
