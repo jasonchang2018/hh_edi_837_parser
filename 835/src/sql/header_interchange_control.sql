@@ -6,6 +6,7 @@ with header_isa as
     with long as
     (
         select      flatten_835.response_id,
+                    flatten_835.index,
 
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -64,6 +65,7 @@ with header_isa as
                     )
                 )   as pvt (
                     RESPONSE_ID,
+                    INDEX,
                     INTERCHANGE_CONTROL_HEADER,
                     AUTHORIZATION_INFORMATION_QUALIFIER,
                     AUTHORIZATION_INFORMATION,
@@ -89,6 +91,7 @@ with header_isa as
     with long as
     (
         select      flatten_835.response_id,
+                    flatten_835.index,
 
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -115,6 +118,7 @@ with header_isa as
                     )
                 )   as pvt (
                     RESPONSE_ID,
+                    INDEX,
                     INTERCHANGE_CONTROL_TRAILER,
                     GS_COUNT_INCLUDED,
                     INTERCHANGE_CONTROL_NUMBER_IEA
@@ -122,6 +126,7 @@ with header_isa as
     order by    1
 )
 select      header_isa.response_id,
+            header_isa.index as index_isa,
             header_isa.interchange_control_header,
             header_isa.authorization_information_qualifier,
             header_isa.authorization_information,
@@ -140,6 +145,7 @@ select      header_isa.response_id,
             header_isa.usage_indicator,
             header_isa.component_separator,
             header_isa.interchange_timestamp,
+            trailer_iea.index as index_iea,
             trailer_iea.interchange_control_trailer,
             trailer_iea.gs_count_included,
             trailer_iea.interchange_control_number_iea
@@ -160,6 +166,7 @@ insert into
     edwprodhh.edi_835_parser.header_interchange_control
 (
     RESPONSE_ID,
+    INDEX_ISA,
     INTERCHANGE_CONTROL_HEADER,
     AUTHORIZATION_INFORMATION_QUALIFIER,
     AUTHORIZATION_INFORMATION,
@@ -178,6 +185,7 @@ insert into
     USAGE_INDICATOR,
     COMPONENT_SEPARATOR,
     INTERCHANGE_TIMESTAMP,
+    INDEX_IEA,
     INTERCHANGE_CONTROL_TRAILER,
     GS_COUNT_INCLUDED,
     INTERCHANGE_CONTROL_NUMBER_IEA
@@ -187,6 +195,7 @@ with header_isa as
     with long as
     (
         select      flatten_835.response_id,
+                    flatten_835.index,
 
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -246,6 +255,7 @@ with header_isa as
                     )
                 )   as pvt (
                     RESPONSE_ID,
+                    INDEX,
                     INTERCHANGE_CONTROL_HEADER,
                     AUTHORIZATION_INFORMATION_QUALIFIER,
                     AUTHORIZATION_INFORMATION,
@@ -271,6 +281,7 @@ with header_isa as
     with long as
     (
         select      flatten_835.response_id,
+                    flatten_835.index,
 
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -298,6 +309,7 @@ with header_isa as
                     )
                 )   as pvt (
                     RESPONSE_ID,
+                    INDEX,
                     INTERCHANGE_CONTROL_TRAILER,
                     GS_COUNT_INCLUDED,
                     INTERCHANGE_CONTROL_NUMBER_IEA
@@ -305,6 +317,7 @@ with header_isa as
     order by    1
 )
 select      header_isa.response_id,
+            header_isa.index as index_isa,
             header_isa.interchange_control_header,
             header_isa.authorization_information_qualifier,
             header_isa.authorization_information,
@@ -323,6 +336,7 @@ select      header_isa.response_id,
             header_isa.usage_indicator,
             header_isa.component_separator,
             header_isa.interchange_timestamp,
+            trailer_iea.index as index_iea,
             trailer_iea.interchange_control_trailer,
             trailer_iea.gs_count_included,
             trailer_iea.interchange_control_number_iea

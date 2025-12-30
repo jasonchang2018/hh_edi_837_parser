@@ -7,6 +7,7 @@ with header_gs as
     (
         select      flatten_835.response_id,
                     flatten_835.nth_functional_group,
+                    flatten_835.index,
         
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -56,6 +57,7 @@ with header_gs as
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
+                    INDEX,
                     FUNCTIONAL_GROUP_HEADER,
                     FUNCTIONAL_IDENTIFIER_CODE,
                     APPLICATION_SENDER_CODE,
@@ -74,6 +76,7 @@ with header_gs as
     (
         select      flatten_835.response_id,
                     flatten_835.nth_functional_group,
+                    flatten_835.index,
         
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -102,6 +105,7 @@ with header_gs as
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
+                    INDEX,
                     FUNCTIONAL_GROUP_TRAILER,
                     TS_COUNT_INCLUDED,
                     GROUP_CONTROL_NUMBER
@@ -110,6 +114,7 @@ with header_gs as
 )
 select      header_gs.response_id,
             header_gs.nth_functional_group,
+            header_gs.index as index_gs,
             header_gs.functional_group_header,
             header_gs.functional_identifier_code,
             header_gs.application_sender_code,
@@ -120,6 +125,7 @@ select      header_gs.response_id,
             header_gs.responsible_agency_code,
             header_gs.version_identifier_code,
             header_gs.functional_group_created_timestamp,
+            trailer_ge.index as index_ge,
             trailer_ge.functional_group_trailer,
             trailer_ge.ts_count_included,
             trailer_ge.group_control_number
@@ -142,6 +148,7 @@ insert into
 (
     RESPONSE_ID,
     NTH_FUNCTIONAL_GROUP,
+    INDEX_GS,
     FUNCTIONAL_GROUP_HEADER,
     FUNCTIONAL_IDENTIFIER_CODE,
     APPLICATION_SENDER_CODE,
@@ -152,6 +159,7 @@ insert into
     RESPONSIBLE_AGENCY_CODE,
     VERSION_IDENTIFIER_CODE,
     FUNCTIONAL_GROUP_CREATED_TIMESTAMP,
+    INDEX_GE,
     FUNCTIONAL_GROUP_TRAILER,
     TS_COUNT_INCLUDED,
     GROUP_CONTROL_NUMBER
@@ -162,6 +170,7 @@ with header_gs as
     (
         select      flatten_835.response_id,
                     flatten_835.nth_functional_group,
+                    flatten_835.index,
         
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -212,6 +221,7 @@ with header_gs as
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
+                    INDEX,
                     FUNCTIONAL_GROUP_HEADER,
                     FUNCTIONAL_IDENTIFIER_CODE,
                     APPLICATION_SENDER_CODE,
@@ -230,6 +240,7 @@ with header_gs as
     (
         select      flatten_835.response_id,
                     flatten_835.nth_functional_group,
+                    flatten_835.index,
         
                     -- flattened.index,
                     -- nullif(trim(flattened.value), '') as value_raw,
@@ -259,6 +270,7 @@ with header_gs as
                 )   as pvt (
                     RESPONSE_ID,
                     NTH_FUNCTIONAL_GROUP,
+                    INDEX,
                     FUNCTIONAL_GROUP_TRAILER,
                     TS_COUNT_INCLUDED,
                     GROUP_CONTROL_NUMBER
@@ -267,6 +279,7 @@ with header_gs as
 )
 select      header_gs.response_id,
             header_gs.nth_functional_group,
+            header_gs.index as index_gs,
             header_gs.functional_group_header,
             header_gs.functional_identifier_code,
             header_gs.application_sender_code,
@@ -277,6 +290,7 @@ select      header_gs.response_id,
             header_gs.responsible_agency_code,
             header_gs.version_identifier_code,
             header_gs.functional_group_created_timestamp,
+            trailer_ge.index as index_ge,
             trailer_ge.functional_group_trailer,
             trailer_ge.ts_count_included,
             trailer_ge.group_control_number
