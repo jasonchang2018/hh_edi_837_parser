@@ -1,4 +1,31 @@
---FL for GS and ISA
+ --*logic to determine which claims have been found
+ --*logic to determine which response ID to use
+  --*is there a way to determine the first one proactively? using how the 835 or 837 is formatted. analyze the 3 vs 11 of the sample 14
+
+create table
+    edwprodhh.edi_835_parser.export_splicer_log
+(
+    RESPONSE_ID         VARCHAR(16777216),
+    INDEX               NUMBER(38,0),
+    LINE_ELEMENT_835    VARCHAR(16777216),
+    UPLOAD_DATE         DATE
+)
+;
+
+
+-- create or replace task
+--     edwprodhh.edi_835_parser.insert_export_splicer_log
+--     warehouse = analysis_wh
+--     schedule = 'USING CRON 0 4 * * MON-FRI America/Chicago'
+-- as
+insert into
+    edwprodhh.edi_835_parser.export_splicer_log
+(
+    RESPONSE_ID,
+    INDEX,
+    LINE_ELEMENT_835,
+    UPLOAD_DATE
+)
 with claims as
 (
     select      response_id,
@@ -6,8 +33,8 @@ with claims as
                 nth_transaction_set,
                 clp_claim_id as claim_id
     from        edwprodhh.edi_835_parser.remits
-    where       response_id = '6e5e9a32c32b737b6119c7b620e8682e4f65a7fa963dac62a096477d56cab86b'
-                and clp_claim_id in ('1322681550','1319557474')
+    where       response_id = '6e5e9a32c32b737b6119c7b620e8682e4f65a7fa963dac62a096477d56cab86b' --*
+                and clp_claim_id in ('1322681550','1319557474') --*
 )
 , response_transaction_sets as
 (
@@ -140,6 +167,16 @@ with claims as
 select      response_id,
             index,
             line_element_835 || '~' as line_element_835,
+            current_date() as upload_date
 from        unioned
 order by    1,2,3
+;
+
+
+create or replace view
+    edwprodhh.edi_835_parser.export_splicer
+as
+select      *
+from        edwprodhh.edi_835_parser.export_splicer_log
+where       upload_date = current_date()
 ;
