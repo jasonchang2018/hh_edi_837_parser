@@ -20,28 +20,34 @@ cur = conn.cursor()
 
 
 ##  Return Snowflake Results
-results_list = cur.execute("select line_element_835, index from edwprodhh.edi_835_parser.export_splicer").fetchall()
+results_list_posted     = cur.execute("select line_element_835, index from edwprodhh.edi_835_parser.export_splicer_posted").fetchall()
+results_list_unposted   = cur.execute("select line_element_835, index from edwprodhh.edi_835_parser.export_splicer_unposted").fetchall()
 
 
-if results_list:
-    
-    # Convert to DataFrame
+result_sets = {
+    "posted": results_list_posted,
+    "unposted": results_list_unposted,
+}
+
+for label, results_list in result_sets.items():
+    if not results_list:
+        continue
+
     df = pd.DataFrame(
         results_list,
-        columns=[desc[0] for desc in cur.description]
+        columns=["line_element_835", "index"]
     )
 
-    # Sort by index and concatenate line_element_835
     results_text = "\n".join(
         df
-        .sort_values(by="INDEX")
-        ["LINE_ELEMENT_835"]
+        .sort_values(by="index")
+        ["line_element_835"]
         .astype(str)
     )
 
     filename = (
         f"J:/IU_Health_Complex/835_SPLICER/"
-        f"export-835-{today_str}.835"
+        f"export-835-{label}-{today_str}.835"
     )
 
     with open(filename, "w", newline="\n") as f:
