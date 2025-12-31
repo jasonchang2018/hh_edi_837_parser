@@ -1,7 +1,7 @@
  --*logic to determine which response ID to use
   --*is there a way to determine the first one proactively? using how the 835 or 837 is formatted. analyze the 3 vs 11 of the sample 14
   --*improve match using date + qualify?
-  --SE count tag
+  --processed with $0 payment include as "Posted to CUBS"
 
 create table
     edwprodhh.edi_835_parser.export_splicer_log
@@ -35,13 +35,14 @@ with response as
     from        edwprodhh.edi_835_parser.response_flat
     where       response_id = '6e5e9a32c32b737b6119c7b620e8682e4f65a7fa963dac62a096477d56cab86b' --*
 )
-, claims_posted as
+, claims as
 (
     with claims_all as
     (
         select      response_id,
                     nth_functional_group,
                     nth_transaction_set,
+                    lx_index,
                     clp_claim_id                                                        as claim_id,
                     regexp_substr(ltrim(clp_claim_id, '0'), '(\\d*$)', 1, 1, 'e')       as claim_id_format,
                     clp_claim_payment_amount::number(18,2)                              as claim_payment_amount
@@ -67,27 +68,259 @@ with response as
         group by    1
         order by    1
     )
-    select      *
+    select      claims_all.*,
+                -- coalesce(posted_cubs.is_posted_cubs, 0) as is_posted_cubs
+                case when claims_all.claim_id in ('1319557474', '03I111391552') then 1 else 0 end as is_posted_cubs
     from        claims_all
-    -- where       claim_id in (select claim_id from posted_cubs where is_posted_cubs = 1)
-    where       claim_id in ('1319557474', '03I111391552')
+                left join
+                    posted_cubs
+                    on claims_all.claim_id = posted_cubs.claim_id
 )
-, response_transaction_sets as
+, response_remits as
 (
     select      response.response_id,
                 response.nth_functional_group,
                 response.nth_transaction_set,
+                response.lx_index,
                 response.index,
                 response.line_element_835,
-                case when claims_posted.response_id is not null then 1 else 0 end as is_posted
+                case    when    regexp_like(response.line_element_835, '^CLP\\*.*') 
+                        then    claims.claim_payment_amount::number(18,2)
+                        else    0
+                        end                                                             as claim_payment_amount, --prevent duplication
+                claims.is_posted_cubs                                                   as is_posted
     from        response
-                left join
-                    claims_posted
-                    on  response.response_id            = claims_posted.response_id
-                    and response.nth_functional_group   = claims_posted.nth_functional_group
-                    and response.nth_transaction_set    = claims_posted.nth_transaction_set
-    where       not regexp_like(response.line_element_835, '^(ISA|IEA|GS|GE)\\*.*')
-    order by    1,2
+                inner join
+                    claims
+                    on  response.response_id            = claims.response_id
+                    and response.nth_functional_group   = claims.nth_functional_group
+                    and response.nth_transaction_set    = claims.nth_transaction_set
+                    and response.lx_index               = claims.lx_index
+    where       not regexp_like(response.line_element_835, '^(ISA|IEA|GS|GE|ST|SE)\\*.*')
+)
+, response_transaction_sets as
+(
+    with posted as
+    (
+        with target_ts as
+        (
+            select      response_id,
+                        nth_functional_group,
+                        nth_transaction_set,
+                        count(distinct lx_index)                as n_remits,
+                        count(*)                                as n_remit_lines,
+                        sum(claim_payment_amount)::number(18,2) as claim_payment_amount
+            from        response_remits
+            where       is_posted = 1
+            group by    1,2,3
+        )
+        , st_body as
+        (
+            select      response.response_id,
+                        response.nth_functional_group,
+                        response.nth_transaction_set,
+                        response.index,
+                        response.line_element_835
+            from        response
+                        inner join
+                            target_ts
+                            on  response.response_id            = target_ts.response_id
+                            and response.nth_functional_group   = target_ts.nth_functional_group
+                            and response.nth_transaction_set    = target_ts.nth_transaction_set
+            where       response.lx_index is null
+                        and not regexp_like(response.line_element_835, '^(ISA|IEA|GS|GE|SE|BPR)\\*.*')
+        )
+        , st_bpr as
+        (
+            select      ts.response_id,
+                        ts.nth_functional_group,
+                        ts.nth_transaction_set,
+                        ts.index_bpr as index,
+                        concat_ws(
+                            '*',
+                            coalesce(ts.bpr_header,                                             ''),
+                            coalesce(ts.trans_handling_code,                                    ''),
+                            coalesce(target_ts.claim_payment_amount,                            '0'),
+                            coalesce(ts.credit_debit_flag,                                      ''),
+                            coalesce(ts.payment_method_code,                                    ''),
+                            coalesce(ts.payment_format_code,                                    ''),
+                            coalesce(ts.dfi_id_qualifier_sender,                                ''),
+                            coalesce(ts.dfi_id_sender,                                          ''),
+                            coalesce(ts.account_number_qualifier_sender,                        ''),
+                            coalesce(ts.account_number_sender,                                  ''),
+                            coalesce(ts.bpr_originating_company_id,                             ''),
+                            coalesce(ts.originating_company_supplemental_code,                  ''),
+                            coalesce(ts.dfi_id_qualifier_receiver,                              ''),
+                            coalesce(ts.dfi_id_receiver,                                        ''),
+                            coalesce(ts.account_number_qualifier_receiver,                      ''),
+                            coalesce(ts.account_number_receiver,                                ''),
+                            coalesce(to_varchar(ts.payment_effective_date::date, 'YYYYMMDD'),   '')
+                        )   as line_element_835
+
+            from        edwprodhh.edi_835_parser.transaction_sets as ts
+                        inner join
+                            target_ts
+                            on  ts.response_id          = target_ts.response_id
+                            and ts.nth_functional_group = target_ts.nth_functional_group
+                            and ts.nth_transaction_set  = target_ts.nth_transaction_set
+        )
+        , se_trailer as
+        (
+            select      ts.response_id,
+                        ts.nth_functional_group,
+                        ts.nth_transaction_set,
+                        ts.index_se as index,
+                        concat_ws(
+                            '*',
+                            coalesce(ts.transaction_set_trailer,                    ''),
+                            target_ts.n_remit_lines
+                                + st_body_lines.n_st_body_lines
+                                + 1     --SE
+                                + 1,    --BPR
+                            coalesce(ts.transaction_set_control_number_trailer,     '')
+                        )   as line_element_835
+            from        edwprodhh.edi_835_parser.transaction_sets as ts
+                        inner join
+                            target_ts
+                            on  ts.response_id          = target_ts.response_id
+                            and ts.nth_functional_group = target_ts.nth_functional_group
+                            and ts.nth_transaction_set  = target_ts.nth_transaction_set
+                        inner join
+                            (
+                                select      response_id,
+                                            nth_functional_group,
+                                            nth_transaction_set,
+                                            count(*) as n_st_body_lines
+                                from        st_body
+                                group by    1,2,3
+                            )   as st_body_lines
+                            on  ts.response_id          = st_body_lines.response_id
+                            and ts.nth_functional_group = st_body_lines.nth_functional_group
+                            and ts.nth_transaction_set  = st_body_lines.nth_transaction_set
+        )
+        select      *
+        from        st_body
+        union all
+        select      *
+        from        st_bpr
+        union all
+        select      *
+        from        se_trailer
+    )
+    , not_posted as
+    (
+        with target_ts as
+        (
+            select      response_id,
+                        nth_functional_group,
+                        nth_transaction_set,
+                        count(distinct lx_index)                as n_remits,
+                        count(*)                                as n_remit_lines,
+                        sum(claim_payment_amount)::number(18,2) as claim_payment_amount
+            from        response_remits
+            where       is_posted = 0
+            group by    1,2,3
+        )
+        , st_body as
+        (
+            select      response.response_id,
+                        response.nth_functional_group,
+                        response.nth_transaction_set,
+                        response.index,
+                        response.line_element_835
+            from        response
+                        inner join
+                            target_ts
+                            on  response.response_id            = target_ts.response_id
+                            and response.nth_functional_group   = target_ts.nth_functional_group
+                            and response.nth_transaction_set    = target_ts.nth_transaction_set
+            where       response.lx_index is null
+                        and not regexp_like(response.line_element_835, '^(ISA|IEA|GS|GE|SE|BPR)\\*.*')
+        )
+        , st_bpr as
+        (
+            select      ts.response_id,
+                        ts.nth_functional_group,
+                        ts.nth_transaction_set,
+                        ts.index_bpr as index,
+                        concat_ws(
+                            '*',
+                            coalesce(ts.bpr_header,                                             ''),
+                            coalesce(ts.trans_handling_code,                                    ''),
+                            coalesce(target_ts.claim_payment_amount,                            '0'),
+                            coalesce(ts.credit_debit_flag,                                      ''),
+                            coalesce(ts.payment_method_code,                                    ''),
+                            coalesce(ts.payment_format_code,                                    ''),
+                            coalesce(ts.dfi_id_qualifier_sender,                                ''),
+                            coalesce(ts.dfi_id_sender,                                          ''),
+                            coalesce(ts.account_number_qualifier_sender,                        ''),
+                            coalesce(ts.account_number_sender,                                  ''),
+                            coalesce(ts.bpr_originating_company_id,                             ''),
+                            coalesce(ts.originating_company_supplemental_code,                  ''),
+                            coalesce(ts.dfi_id_qualifier_receiver,                              ''),
+                            coalesce(ts.dfi_id_receiver,                                        ''),
+                            coalesce(ts.account_number_qualifier_receiver,                      ''),
+                            coalesce(ts.account_number_receiver,                                ''),
+                            coalesce(to_varchar(ts.payment_effective_date::date, 'YYYYMMDD'),   '')
+                        )   as line_element_835
+
+            from        edwprodhh.edi_835_parser.transaction_sets as ts
+                        inner join
+                            target_ts
+                            on  ts.response_id          = target_ts.response_id
+                            and ts.nth_functional_group = target_ts.nth_functional_group
+                            and ts.nth_transaction_set  = target_ts.nth_transaction_set
+        )
+        , se_trailer as
+        (
+            select      ts.response_id,
+                        ts.nth_functional_group,
+                        ts.nth_transaction_set,
+                        ts.index_se as index,
+                        concat_ws(
+                            '*',
+                            coalesce(ts.transaction_set_trailer,                    ''),
+                            target_ts.n_remit_lines
+                                + st_body_lines.n_st_body_lines
+                                + 1     --SE
+                                + 1,    --BPR
+                            coalesce(ts.transaction_set_control_number_trailer,     '')
+                        )   as line_element_835
+            from        edwprodhh.edi_835_parser.transaction_sets as ts
+                        inner join
+                            target_ts
+                            on  ts.response_id          = target_ts.response_id
+                            and ts.nth_functional_group = target_ts.nth_functional_group
+                            and ts.nth_transaction_set  = target_ts.nth_transaction_set
+                        inner join
+                            (
+                                select      response_id,
+                                            nth_functional_group,
+                                            nth_transaction_set,
+                                            count(*) as n_st_body_lines
+                                from        st_body
+                                group by    1,2,3
+                            )   as st_body_lines
+                            on  ts.response_id          = st_body_lines.response_id
+                            and ts.nth_functional_group = st_body_lines.nth_functional_group
+                            and ts.nth_transaction_set  = st_body_lines.nth_transaction_set
+        )
+        select      *
+        from        st_body
+        union all
+        select      *
+        from        st_bpr
+        union all
+        select      *
+        from        se_trailer
+    )
+    select      *,
+                1 as is_posted
+    from        posted
+    union all
+    select      *,
+                0 as is_posted
+    from        not_posted
 )
 , response_functional_group as
 (
@@ -290,6 +523,12 @@ with response as
                 line_element_835,
                 is_posted
     from        response_transaction_sets
+    union all
+    select      response_id,
+                index,
+                line_element_835,
+                is_posted
+    from        response_remits
 )
 select      response_id,
             index,
