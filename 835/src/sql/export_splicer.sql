@@ -1,7 +1,6 @@
  --*logic to determine which response ID to use
   --*is there a way to determine the first one proactively? using how the 835 or 837 is formatted. analyze the 3 vs 11 of the sample 14
   --*improve match using date + qualify?
-  --processed with $0 payment include as "Posted to CUBS"
 
 create table
     edwprodhh.edi_835_parser.export_splicer_log
@@ -69,10 +68,13 @@ with response as
         order by    1
     )
     select      claims_all.*,
-                -- coalesce(posted_cubs.is_posted_cubs, 0) as is_posted_cubs
-                case when claims_all.claim_id in ('1319557474', '03I111391552') then 1 else 0 end as is_posted_cubs
+                -- case    when    claims_all.claim_payment_amount = 0
+                --         then    1
+                --         else    posted_cubs.is_posted_cubs
+                --         end     as is_posted_cubs
+                case when claims_all.claim_id in ('1319557474', '03I111391552') then 1 else 0 end as is_posted_cubs --for testing
     from        claims_all
-                left join
+                inner join
                     posted_cubs
                     on claims_all.claim_id = posted_cubs.claim_id
 )
